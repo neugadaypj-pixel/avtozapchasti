@@ -10,12 +10,14 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: NODE_ENV
+        value: production
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_DB
         value: zapchast
       - key: JWT_SECRET
-        generateValue: true
+        value: 287a92b662dc2f471336fd02bdf2585da1acc36746ea2bbb032dde4116acada554e1c64172205acac884a1b4a48fea4d66e550c62b14b84529bbda621019194b
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID
