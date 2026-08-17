@@ -192,6 +192,45 @@ node server/src/test-api.js
 - Войдите админом (`admin` / `admin123`) и **сразу смените пароль**.
 - Привяжите свой домен: Render → Settings → Custom Domain.
 
+## 📱 Нативные приложения (APK и EXE)
+
+Приложение можно собирать как настольное (Windows) и мобильное (Android) — той же кодовой базой React.
+
+### Готовые файлы
+
+Собранные файлы копируются в папку `dist-apps/`:
+- `AvtoZapchasti.apk` — Android-приложение (установка на телефон).
+- `AvtoZapchasti Setup 1.0.0.exe` — установщик Windows.
+
+### Сборка Windows (.exe)
+
+```bash
+npm run electron:build --workspace client
+```
+Результат: `client/release/AvtoZapchasti Setup 1.0.0.exe`
+
+### Сборка Android (.apk)
+
+Требуется Android SDK (Java уже нужна — версии 17/21). SDK ставится в `D:\android-sdk`.
+
+```bash
+# 1. Собрать веб в native-режиме (с абсолютным URL API)
+npm run build:native --workspace client
+
+# 2. Синхронизировать и собрать APK
+cd client && npx cap sync android && cd android && gradlew.bat assembleDebug
+```
+Результат: `client/android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Важно про URL API
+
+- Веб-версия использует относительный `/api` (через сервер).
+- Нативные сборки используют `VITE_API_URL` из [`client/.env.native`](client/.env.native) — там задан `https://avtozapchasti.onrender.com/api`.
+
+### iOS (.ipa)
+
+Требует Apple Developer ($99/год) и macOS. Не собирается на Windows.
+
 ## 🔒 Безопасность и бэкапы
 
 ### Защита

@@ -1,6 +1,9 @@
 node_modules/
 dist/
 server/data/
+client/release/
+client/android/
+dist-apps/
 *.log
 .DS_Store
 .env

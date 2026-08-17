@@ -1,0 +1,8 @@
+{
+  "appId": "uz.avtozapchasti.app",
+  "appName": "AvtoZapchasti",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

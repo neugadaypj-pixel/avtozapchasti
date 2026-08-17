@@ -1,4 +1,8 @@
-const BASE = '/api';
+// Базовый URL API.
+// - В браузере (dev/prod) работает относительный путь '/api' (через прокси/сервер).
+// - В нативных сборках (APK/EXE) относительный путь не работает, поэтому
+//   задаётся абсолютный URL через переменную окружения VITE_API_URL.
+const BASE = (import.meta.env?.VITE_API_URL) || '/api';
 
 function getToken() {
   return localStorage.getItem('token');
