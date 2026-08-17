@@ -11,6 +11,7 @@ import { TransfersPage } from './pages/Transfers.jsx';
 import { InventoryPage } from './pages/Inventory.jsx';
 import { WorkersPage } from './pages/Workers.jsx';
 import { CategoriesPage } from './pages/Categories.jsx';
+import { AuditLogPage } from './pages/AuditLog.jsx';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -48,6 +49,8 @@ export default function App() {
         return isAdmin ? <WorkersPage /> : <Dashboard onNavigate={setPage} />;
       case 'categories':
         return isAdmin ? <CategoriesPage /> : <Dashboard onNavigate={setPage} />;
+      case 'audit':
+        return isAdmin ? <AuditLogPage /> : <Dashboard onNavigate={setPage} />;
       default:
         return <Dashboard onNavigate={setPage} />;
     }

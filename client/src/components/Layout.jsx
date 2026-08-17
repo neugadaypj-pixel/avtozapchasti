@@ -14,6 +14,7 @@ export function Layout({ current, onNavigate, children }) {
     { id: 'sales', label: 'Продажи', icon: 'sales' },
     { id: 'transfers', label: 'Передачи', icon: 'transfers' },
     { id: 'categories', label: 'Категории', icon: 'categories' },
+    { id: 'audit', label: 'Журнал действий', icon: 'edit' },
   ];
 
   const workerNav = [

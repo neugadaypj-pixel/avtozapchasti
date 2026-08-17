@@ -32,6 +32,9 @@ function auth(req, res, next) {
       if (!user) {
         return res.status(401).json({ success: false, error: 'Пользователь не найден' });
       }
+      if (user.deleted) {
+        return res.status(401).json({ success: false, error: 'Пользователь не найден' });
+      }
       if (!user.is_active) {
         return res.status(403).json({ success: false, error: 'Аккаунт заблокирован' });
       }

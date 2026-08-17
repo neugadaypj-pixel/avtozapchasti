@@ -1,6 +1,7 @@
 const express = require('express');
 const { col } = require('../db');
 const { adminOnly } = require('../auth');
+const { logAction } = require('../audit');
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.post('/', adminOnly, async (req, res) => {
   const exists = await col('categories').findOne({ name: trimmed });
   if (exists) return res.status(409).json({ success: false, error: 'Категория уже существует' });
   const cat = await col('categories').insert({ name: trimmed, created_at: new Date().toISOString() });
+  await logAction(req.user, 'create', 'category', cat.id, { name: trimmed });
   res.status(201).json({ success: true, data: cat });
 });
 
@@ -38,6 +40,7 @@ router.delete('/:id', adminOnly, async (req, res) => {
   await col('categories').delete({ id });
   // Убираем ссылку у запчастей.
   await col('parts').update({ category_id: id }, { $set: { category_id: null } });
+  await logAction(req.user, 'delete', 'category', id, { name: cat.name });
   res.json({ success: true });
 });
 

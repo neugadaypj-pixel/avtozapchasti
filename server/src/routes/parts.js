@@ -2,6 +2,7 @@ const express = require('express');
 const { col } = require('../db');
 const { adminOnly } = require('../auth');
 const { adjustStock, availability } = require('../inventory');
+const { logAction } = require('../audit');
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   const { search, category_id, brand, low_stock, mine } = req.query;
 
-  let parts = await col('parts').find({});
+  let parts = (await col('parts').find({})).filter((p) => !p.deleted);
   const cats = await col('categories').find({});
   const catMap = Object.fromEntries(cats.map((c) => [c.id, c.name]));
 
@@ -156,7 +157,7 @@ router.put('/:id', adminOnly, async (req, res) => {
   res.json({ success: true, data: { ...updated, ...avail } });
 });
 
-// Удаление запчасти (только если нет остатков и продаж).
+// Удаление запчасти (только если нет остатков). Мягкое удаление — данные сохраняются.
 router.delete('/:id', adminOnly, async (req, res) => {
   const id = Number(req.params.id);
   const p = await col('parts').findOne({ id });
@@ -167,13 +168,9 @@ router.delete('/:id', adminOnly, async (req, res) => {
   if (total > 0) {
     return res.status(400).json({ success: false, error: 'У запчасти есть остатки. Сначала продайте или верните их.' });
   }
-  const sales = await col('sales').count({ part_id: id });
-  if (sales > 0) {
-    return res.status(400).json({ success: false, error: 'По запчасти есть продажи. Удаление заблокировано.' });
-  }
 
-  await col('parts').delete({ id });
-  await col('inventory').delete({ part_id: id });
+  await col('parts').update({ id }, { $set: { deleted: 1 } });
+  await logAction(req.user, 'delete', 'part', id, { name: p.name, sku: p.sku });
   res.json({ success: true });
 });
 

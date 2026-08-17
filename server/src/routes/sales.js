@@ -1,6 +1,7 @@
 const express = require('express');
 const { col } = require('../db');
 const { adjustStock, getQuantity } = require('../inventory');
+const { logAction } = require('../audit');
 
 const router = express.Router();
 
@@ -66,6 +67,7 @@ router.post('/', async (req, res) => {
     created_at: new Date().toISOString(),
   });
 
+  await logAction(req.user, 'sell', 'sale', s.id, { part: part.name, quantity: qty, total });
   res.status(201).json({ success: true, data: { id: s.id, total } });
 });
 

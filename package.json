@@ -18,7 +18,8 @@
     "dev:client": "npm run dev --workspace client",
     "build": "npm run build --workspace client",
     "start": "npm run start --workspace server",
-    "test": "node server/src/test-api.js"
+    "test": "node server/src/test-api.js",
+    "backup": "node server/src/backup.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

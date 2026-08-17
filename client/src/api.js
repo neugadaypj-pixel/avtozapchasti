@@ -79,5 +79,8 @@ export const API = {
       return api('/uploads', { method: 'POST', body: fd });
     },
   },
+  audit: {
+    list: () => api('/audit'),
+  },
   dashboard: () => api('/dashboard'),
 };

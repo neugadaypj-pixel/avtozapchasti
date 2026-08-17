@@ -2,13 +2,14 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { col } = require('../db');
 const { adminOnly, publicUser } = require('../auth');
+const { logAction } = require('../audit');
 
 const router = express.Router();
 router.use(adminOnly);
 
 // Список пользователей с суммой остатков по каждому.
 router.get('/', async (req, res) => {
-  const users = await col('users').find({});
+  const users = (await col('users').find({})).filter((u) => !u.deleted);
   users.sort((a, b) => (b.role === 'admin') - (a.role === 'admin') || (a.full_name || '').localeCompare(b.full_name || ''));
   const inv = await col('inventory').find({ owner_type: 'worker', quantity: { $gt: 0 } });
   const stockCount = {};
@@ -41,8 +42,10 @@ router.post('/', async (req, res) => {
     city: city || null,
     phone: phone || null,
     is_active: 1,
+    deleted: 0,
     created_at: new Date().toISOString(),
   });
+  await logAction(req.user, 'create', 'user', user.id, { username: uname, full_name, role });
   res.status(201).json({ success: true, data: publicUser(user) });
 });
 
@@ -75,6 +78,7 @@ router.put('/:id', async (req, res) => {
   if (is_active !== undefined) set.is_active = is_active ? 1 : 0;
   if (password) set.password_hash = bcrypt.hashSync(String(password), 10);
   await col('users').update({ id }, { $set: set });
+  await logAction(req.user, 'update', 'user', id, { fields: Object.keys(set) });
 
   const updated = await col('users').findOne({ id });
   res.json({ success: true, data: publicUser(updated) });
@@ -95,7 +99,9 @@ router.delete('/:id', async (req, res) => {
     return res.status(400).json({ success: false, error: 'У рабочего есть остатки. Сначала верните их на склад.' });
   }
 
-  await col('users').delete({ id });
+  // Мягкое удаление: помечаем deleted=1, не удаляем физически (данные навсегда).
+  await col('users').update({ id }, { $set: { deleted: 1 } });
+  await logAction(req.user, 'delete', 'user', id, { username: user.username });
   res.json({ success: true });
 });
 

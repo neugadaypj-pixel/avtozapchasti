@@ -2,6 +2,7 @@ const express = require('express');
 const { col } = require('../db');
 const { adminOnly } = require('../auth');
 const { adjustStock, getQuantity } = require('../inventory');
+const { logAction } = require('../audit');
 
 const router = express.Router();
 
@@ -69,6 +70,7 @@ router.post('/assign', adminOnly, async (req, res) => {
     created_at: new Date().toISOString(),
   });
 
+  await logAction(req.user, 'assign', 'transfer', t.id, { part: part.name, quantity: qty, to: worker.full_name });
   res.status(201).json({ success: true, data: { id: t.id } });
 });
 
@@ -113,6 +115,7 @@ router.post('/return', async (req, res) => {
     created_at: new Date().toISOString(),
   });
 
+  await logAction(req.user, 'return', 'transfer', t.id, { part: part.name, quantity: qty, reason });
   res.status(201).json({ success: true, data: { id: t.id } });
 });
 
@@ -140,6 +143,7 @@ router.post('/restock', adminOnly, async (req, res) => {
     created_at: new Date().toISOString(),
   });
 
+  await logAction(req.user, 'restock', 'transfer', t.id, { part: part.name, quantity: qty });
   res.status(201).json({ success: true, data: { id: t.id } });
 });
 
@@ -178,6 +182,7 @@ router.post('/worker-transfer', adminOnly, async (req, res) => {
     created_at: new Date().toISOString(),
   });
 
+  await logAction(req.user, 'worker-transfer', 'transfer', t.id, { part: part.name, quantity: qty, from: Number(from_worker_id), to: Number(to_worker_id) });
   res.status(201).json({ success: true, data: { id: t.id } });
 });
 

@@ -8,12 +8,39 @@ try {
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { connect } = require('./db');
 const { auth } = require('./auth');
 
 const app = express();
+
+// Базовые заголовки безопасности.
+app.use(helmet());
+
+// CORS: разрешаем все origin (приложение отдаётся тем же сервером).
 app.use(cors());
-app.use(express.json());
+
+// Лимит размера JSON-тела (защита от больших запросов).
+app.use(express.json({ limit: '1mb' }));
+
+// Rate limiting: защита от перебора пароля и злоупотреблений.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 минут
+  max: 30, // максимум 30 попыток
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Слишком много попыток. Попробуйте позже.' },
+});
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 минута
+  max: 200, // максимум 200 запросов
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Слишком много запросов. Попробуйте позже.' },
+});
+app.use('/api/auth/login', loginLimiter);
+app.use('/api', apiLimiter);
 
 // Статика для локально загруженных фото (fallback, когда R2 не настроен).
 app.use('/uploads', express.static(path.join(__dirname, '..', 'data', 'uploads')));
@@ -39,6 +66,7 @@ app.use('/api/transfers', auth, require('./routes/transfers'));
 app.use('/api/sales', auth, require('./routes/sales'));
 app.use('/api/dashboard', auth, require('./routes/dashboard'));
 app.use('/api/uploads', auth, require('./routes/uploads'));
+app.use('/api/audit', auth, require('./routes/audit'));
 
 // Раздача собранного фронтенда (client/dist), если он собран.
 // Для продакшена Render собирает фронт и отдаёт его этим же сервером.
@@ -60,6 +88,12 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 4000;
+
+// В продакшене (когда NODE_ENV=production) требуем заданный JWT_SECRET.
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error('ОШИБКА: в продакшене обязательно задайте переменную окружения JWT_SECRET.');
+  process.exit(1);
+}
 
 async function start() {
   try {
