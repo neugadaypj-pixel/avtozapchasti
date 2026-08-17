@@ -1,0 +1,28 @@
+# Blueprint для деплоя на Render одним нажатием.
+# https://render.com → New → Blueprint → указать репозиторий.
+services:
+  - type: web
+    name: zapchast
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: zapchast
+      - key: JWT_SECRET
+        generateValue: true
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        value: avtozapchasti
+      - key: R2_PUBLIC_URL
+        sync: false

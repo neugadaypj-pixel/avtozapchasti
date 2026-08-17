@@ -1,0 +1,180 @@
+const express = require('express');
+const { col } = require('../db');
+const { adminOnly } = require('../auth');
+const { adjustStock, availability } = require('../inventory');
+
+const router = express.Router();
+
+// Список запчастей с наличием по складу и рабочим.
+router.get('/', async (req, res) => {
+  const { search, category_id, brand, low_stock, mine } = req.query;
+
+  let parts = await col('parts').find({});
+  const cats = await col('categories').find({});
+  const catMap = Object.fromEntries(cats.map((c) => [c.id, c.name]));
+
+  // Фильтрация.
+  if (search) {
+    const s = search.toLowerCase();
+    parts = parts.filter(
+      (p) =>
+        (p.name || '').toLowerCase().includes(s) ||
+        (p.sku || '').toLowerCase().includes(s) ||
+        (p.brand || '').toLowerCase().includes(s)
+    );
+  }
+  if (category_id) {
+    parts = parts.filter((p) => p.category_id === Number(category_id));
+  }
+  if (brand) {
+    const b = brand.toLowerCase();
+    parts = parts.filter((p) => (p.brand || '').toLowerCase().includes(b));
+  }
+  if (mine === '1' && req.user.role === 'worker') {
+    const myInv = await col('inventory').find({ worker_id: req.user.id, quantity: { $gt: 0 } });
+    const myPartIds = new Set(myInv.map((r) => r.part_id));
+    parts = parts.filter((p) => myPartIds.has(p.id));
+  }
+
+  // Остатки.
+  const partIds = parts.map((p) => p.id);
+  let invRows = [];
+  if (partIds.length) {
+    invRows = await col('inventory').find({ part_id: { $in: partIds } });
+  }
+  const users = await col('users').find({});
+  const userMap = Object.fromEntries(users.map((u) => [u.id, u]));
+
+  const invMap = {};
+  for (const r of invRows) {
+    if (!invMap[r.part_id]) invMap[r.part_id] = [];
+    invMap[r.part_id].push(r);
+  }
+
+  let data = parts.map((p) => {
+    const inv = invMap[p.id] || [];
+    const warehouse = inv.find((r) => r.owner_type === 'warehouse');
+    const workers = inv.filter((r) => r.owner_type === 'worker' && r.quantity > 0);
+    const total = inv.reduce((s, r) => s + r.quantity, 0);
+    return {
+      ...p,
+      category_name: catMap[p.category_id] || null,
+      total,
+      warehouse_qty: warehouse ? warehouse.quantity : 0,
+      workers: workers.map((w) => ({
+        worker_id: w.worker_id,
+        full_name: userMap[w.worker_id]?.full_name || '—',
+        city: userMap[w.worker_id]?.city || null,
+        quantity: w.quantity,
+      })),
+      low_stock: total <= 3,
+    };
+  });
+
+  if (low_stock === '1') {
+    data = data.filter((d) => d.low_stock);
+  }
+
+  data.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)) || b.id - a.id);
+  res.json({ success: true, data });
+});
+
+// Детали запчасти.
+router.get('/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const p = await col('parts').findOne({ id });
+  if (!p) return res.status(404).json({ success: false, error: 'Запчасть не найдена' });
+
+  const cats = await col('categories').find({});
+  const category_name = (cats.find((c) => c.id === p.category_id) || {}).name || null;
+  const avail = await availability(id);
+  res.json({ success: true, data: { ...p, category_name, ...avail } });
+});
+
+// Создание запчасти (только админ), с начальным остатком на складе.
+router.post('/', adminOnly, async (req, res) => {
+  const { name, sku, brand, category_id, cost_price, sell_price, description, initial_quantity, image_url } = req.body || {};
+  if (!name || !String(name).trim()) {
+    return res.status(400).json({ success: false, error: 'Введите название запчасти' });
+  }
+  if (sku) {
+    const exists = await col('parts').findOne({ sku: String(sku).trim() });
+    if (exists) return res.status(409).json({ success: false, error: 'Артикул (SKU) уже существует' });
+  }
+
+  const part = await col('parts').insert({
+    name: String(name).trim(),
+    sku: sku ? String(sku).trim() : null,
+    brand: brand || null,
+    category_id: category_id ? Number(category_id) : null,
+    cost_price: Number(cost_price) || 0,
+    sell_price: Number(sell_price) || 0,
+    description: description || null,
+    image_url: image_url || null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+
+  const qty = Math.max(0, Number(initial_quantity) || 0);
+  if (qty > 0) {
+    await adjustStock(part.id, 'warehouse', null, qty);
+  }
+
+  const avail = await availability(part.id);
+  res.status(201).json({ success: true, data: { ...part, ...avail } });
+});
+
+// Обновление запчасти (только админ).
+router.put('/:id', adminOnly, async (req, res) => {
+  const id = Number(req.params.id);
+  const p = await col('parts').findOne({ id });
+  if (!p) return res.status(404).json({ success: false, error: 'Запчасть не найдена' });
+
+  const { name, sku, brand, category_id, cost_price, sell_price, description, image_url } = req.body || {};
+
+  if (sku !== undefined && sku) {
+    const exists = await col('parts').findOne({ sku: String(sku).trim() });
+    if (exists && exists.id !== id) {
+      return res.status(409).json({ success: false, error: 'Артикул (SKU) уже существует' });
+    }
+  }
+
+  const set = { updated_at: new Date().toISOString() };
+  if (name !== undefined) set.name = String(name).trim();
+  if (sku !== undefined) set.sku = sku ? String(sku).trim() : null;
+  if (brand !== undefined) set.brand = brand;
+  if (category_id !== undefined) set.category_id = category_id ? Number(category_id) : null;
+  if (cost_price !== undefined) set.cost_price = Number(cost_price);
+  if (sell_price !== undefined) set.sell_price = Number(sell_price);
+  if (description !== undefined) set.description = description;
+  if (image_url !== undefined) set.image_url = image_url;
+
+  await col('parts').update({ id }, { $set: set });
+
+  const updated = await col('parts').findOne({ id });
+  const avail = await availability(id);
+  res.json({ success: true, data: { ...updated, ...avail } });
+});
+
+// Удаление запчасти (только если нет остатков и продаж).
+router.delete('/:id', adminOnly, async (req, res) => {
+  const id = Number(req.params.id);
+  const p = await col('parts').findOne({ id });
+  if (!p) return res.status(404).json({ success: false, error: 'Запчасть не найдена' });
+
+  const inv = await col('inventory').find({ part_id: id });
+  const total = inv.reduce((s, r) => s + r.quantity, 0);
+  if (total > 0) {
+    return res.status(400).json({ success: false, error: 'У запчасти есть остатки. Сначала продайте или верните их.' });
+  }
+  const sales = await col('sales').count({ part_id: id });
+  if (sales > 0) {
+    return res.status(400).json({ success: false, error: 'По запчасти есть продажи. Удаление заблокировано.' });
+  }
+
+  await col('parts').delete({ id });
+  await col('inventory').delete({ part_id: id });
+  res.json({ success: true });
+});
+
+module.exports = router;
