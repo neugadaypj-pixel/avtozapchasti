@@ -169,7 +169,7 @@ node server/src/test-api.js
 1. **New** → **Web Service** → подключите репозиторий.
 2. Настройки:
    - **Runtime**: Node
-   - **Build Command**: `npm install && npm run build`
+   - **Build Command**: `npm install --include=dev && npm run build`
    - **Start Command**: `npm start`
    - **Plan**: Free
 3. Добавьте переменные окружения:
