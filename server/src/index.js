@@ -12,6 +12,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { connect } = require('./db');
 const { auth } = require('./auth');
+const { startScheduler } = require('./scheduler');
 
 const app = express();
 
@@ -53,9 +54,16 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/api/health', (req, res) => {
-  const { isConfigured } = require('./r2');
-  res.json({ ok: true, db: 'mongodb', r2: isConfigured ? 'connected' : 'local' });
+app.get('/api/health', async (req, res) => {
+  try {
+    const { getDb } = require('./db');
+    const d = await getDb();
+    await d.command({ ping: 1 }); // реальная проверка MongoDB
+    const { isConfigured } = require('./r2');
+    res.json({ ok: true, db: 'mongodb', r2: isConfigured ? 'connected' : 'local' });
+  } catch (e) {
+    res.status(503).json({ ok: false, error: 'MongoDB недоступна' });
+  }
 });
 
 app.use('/api/auth', require('./routes/auth'));
@@ -100,6 +108,10 @@ async function start() {
     await connect();
     app.listen(PORT, () => {
       console.log(`Сервер запущен: http://localhost:${PORT}`);
+      // Авто-бэкапы только в продакшене.
+      if (process.env.NODE_ENV === 'production') {
+        startScheduler();
+      }
     });
   } catch (e) {
     console.error('Не удалось подключиться к MongoDB:', e.message);

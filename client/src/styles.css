@@ -448,7 +448,10 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
+.table-wrap .table { min-width: 640px; }
 .table { width: 100%; border-collapse: collapse; }
 .table th {
   text-align: left;
@@ -661,9 +664,27 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
     background: rgba(0,0,0,0.4);
     z-index: 35;
   }
-  .content { padding: 18px; }
-  .topbar { padding: 0 16px; }
+  .content { padding: 14px; }
+  .topbar { padding: 0 12px; }
   .topbar-user-meta { display: none; }
+  .page-head h2 { font-size: 20px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 14px; gap: 10px; }
+  .stat-icon { width: 36px; height: 36px; }
+  .stat-value { font-size: 18px; }
+  .table th { padding: 10px 12px; }
+  .table td { padding: 11px 12px; }
+  .filter-bar, .action-row { gap: 8px; }
+  .filter-bar .search-input, .action-row .search-input { max-width: 100%; width: 100%; }
+  .modal { max-width: 100%; }
+  .modal-body { padding: 16px; }
+  .login-card { padding: 32px 24px; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 16px; }
+  .stat-label { font-size: 11px; }
 }
 
 /* ---------- Дашборд: график и рейтинг ---------- */

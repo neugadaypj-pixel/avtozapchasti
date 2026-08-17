@@ -22,12 +22,6 @@ export function Login() {
     }
   }
 
-  function fillDemo(u, p) {
-    setUsername(u);
-    setPassword(p);
-    setError('');
-  }
-
   return (
     <div className="login-page">
       <div className="login-card">
@@ -63,12 +57,6 @@ export function Login() {
             {loading ? 'Входим…' : 'Войти'}
           </Button>
         </form>
-
-        <div className="login-demo">
-          <button type="button" className="demo-link" onClick={() => fillDemo('admin', 'admin123')}>
-            Войти как администратор
-          </button>
-        </div>
       </div>
     </div>
   );
