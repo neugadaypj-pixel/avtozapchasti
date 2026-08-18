@@ -3,6 +3,7 @@ const { col } = require('../db');
 const { adminOnly } = require('../auth');
 const { adjustStock, getQuantity } = require('../inventory');
 const { logAction } = require('../audit');
+const { notify } = require('../notifications');
 
 const router = express.Router();
 
@@ -71,6 +72,9 @@ router.post('/assign', adminOnly, async (req, res) => {
   });
 
   await logAction(req.user, 'assign', 'transfer', t.id, { part: part.name, quantity: qty, to: worker.full_name });
+  await notify(worker.id, 'assign', `Sizga yangi tovar berildi: ${part.name} (${qty} dona)`, {
+    part_id: part.id, quantity: qty,
+  });
   res.status(201).json({ success: true, data: { id: t.id } });
 });
 

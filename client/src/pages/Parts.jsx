@@ -92,19 +92,19 @@ export function PartsPage({ onNavigate }) {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>{isAdmin ? 'Запчасти' : 'Поиск по базе'}</h2>
+        <h2>{isAdmin ? 'Ehtiyot qismlar' : "Baza bo'yicha qidiruv"}</h2>
         <p className="muted">
-          {isAdmin ? 'Управление каталогом запчастей' : 'Ищите запчасти по всей базе и смотрите, у кого они есть'}
+          {isAdmin ? 'Ehtiyot qismlar katalogini boshqarish' : "Butun baza bo'yicha qidiring va kimda borligini ko'ring"}
         </p>
         {isAdmin && (
-          <Button onClick={() => setForm({ mode: 'create', part: null })}>+ Добавить запчасть</Button>
+          <Button onClick={() => setForm({ mode: 'create', part: null })}>+ Ehtiyot qism qo'shish</Button>
         )}
       </div>
 
       <div className="filter-bar">
         <input
           className="input search-input"
-          placeholder="Поиск по названию, артикулу, бренду…"
+          placeholder="Nomi, artikul, brend bo'yicha qidiruv…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -144,12 +144,12 @@ export function PartsPage({ onNavigate }) {
           <table className="table table-hover">
             <thead>
               <tr>
-                <th>Название</th>
-                <th>Артикул</th>
-                <th>Бренд</th>
-                <th>Категория</th>
-                <th>Цена</th>
-                <th>Наличие</th>
+                <th>Nomi</th>
+                <th>Artikul</th>
+                <th>Brend</th>
+                <th>Kategoriya</th>
+                <th>Narxi</th>
+                <th>Mavjudligi</th>
                 <th></th>
               </tr>
             </thead>
@@ -158,7 +158,7 @@ export function PartsPage({ onNavigate }) {
                 <tr key={p.id} onClick={() => openDetail(p.id)}>
                   <td>
                     <div className="list-title">{p.name}</div>
-                    {p.low_stock && <Badge tone="warn">мало</Badge>}
+                    {p.low_stock && <Badge tone="warn">kam</Badge>}
                   </td>
                   <td className="muted">{p.sku || '—'}</td>
                   <td>{p.brand || '—'}</td>
@@ -166,11 +166,11 @@ export function PartsPage({ onNavigate }) {
                   <td className="nowrap">{fmtMoney(p.sell_price)}</td>
                   <td>
                     <Badge tone={p.total > 0 ? 'success' : 'gray'}>
-                      {p.total} шт.
+                      {p.total} dona
                     </Badge>
                     {p.workers.length > 0 && (
                       <span className="small muted" style={{ marginLeft: 6 }}>
-                        у {p.workers.length} раб.
+                        {p.workers.length} ishchida
                       </span>
                     )}
                   </td>
@@ -249,30 +249,30 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
         <img className="part-photo" src={part.image_url} alt={part.name} />
       )}
       <div className="detail-grid">
-        <div className="detail-field"><span>Артикул</span><strong>{part.sku || '—'}</strong></div>
-        <div className="detail-field"><span>Бренд</span><strong>{part.brand || '—'}</strong></div>
-        <div className="detail-field"><span>Категория</span><strong>{part.category_name || '—'}</strong></div>
-        <div className="detail-field"><span>Закупочная</span><strong>{fmtMoney(part.cost_price)}</strong></div>
-        <div className="detail-field"><span>Цена продажи</span><strong>{fmtMoney(part.sell_price)}</strong></div>
-        <div className="detail-field"><span>Всего в наличии</span><strong>{part.total} шт.</strong></div>
+        <div className="detail-field"><span>Artikul</span><strong>{part.sku || '—'}</strong></div>
+        <div className="detail-field"><span>Brend</span><strong>{part.brand || '—'}</strong></div>
+        <div className="detail-field"><span>Kategoriya</span><strong>{part.category_name || '—'}</strong></div>
+        <div className="detail-field"><span>Sotib olish narxi</span><strong>{fmtMoney(part.cost_price)}</strong></div>
+        <div className="detail-field"><span>Sotuv narxi</span><strong>{fmtMoney(part.sell_price)}</strong></div>
+        <div className="detail-field"><span>Jami mavjud</span><strong>{part.total} dona</strong></div>
       </div>
 
       {part.description && <p className="muted" style={{ marginTop: 12 }}>{part.description}</p>}
 
-      <h4 className="section-title">Где находится</h4>
+      <h4 className="section-title">Qayerda joylashgan</h4>
       <div className="availability">
         <div className={`avail-row ${part.warehouse > 0 ? 'avail-ok' : ''}`}>
-          <span>🏭 Главный склад</span>
-          <Badge tone={part.warehouse > 0 ? 'success' : 'gray'}>{part.warehouse} шт.</Badge>
+          <span>🏭 Asosiy ombor</span>
+          <Badge tone={part.warehouse > 0 ? 'success' : 'gray'}>{part.warehouse} dona</Badge>
         </div>
         {part.workers.map((w) => (
           <div className="avail-row" key={w.worker_id}>
             <span>👤 {w.full_name} · {w.city || '—'}</span>
-            <Badge tone="success">{w.quantity} шт.</Badge>
+            <Badge tone="success">{w.quantity} dona</Badge>
           </div>
         ))}
         {part.workers.length === 0 && part.warehouse === 0 && (
-          <p className="muted">Запчасти нет ни у кого.</p>
+          <p className="muted">Ehtiyot qism hech kimda yo'q.</p>
         )}
       </div>
 
@@ -317,8 +317,8 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
 
       {isAdmin && (
         <div className="detail-actions">
-          <Button variant="secondary" onClick={onEdit}>✏️ Редактировать</Button>
-          <Button variant="danger" onClick={onDelete}>🗑 Удалить</Button>
+          <Button variant="secondary" onClick={onEdit}>✏️ Tahrirlash</Button>
+          <Button variant="danger" onClick={onDelete}>🗑 O'chirish</Button>
         </div>
       )}
     </div>

@@ -73,26 +73,26 @@ export function MyStock({ onNavigate }) {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Мои запчасти</h2>
-        <p className="muted">Товар, который вам выделили для продажи</p>
+        <h2>Mening ehtiyot qismlarim</h2>
+        <p className="muted">Sotish uchun sizga berilgan tovar</p>
       </div>
 
       {loading ? (
         <Spinner />
       ) : stock.length === 0 ? (
-        <Empty title="У вас пока нет запчастей">
-          Администратор распределит товар — и он появится здесь.
+        <Empty title="Sizda hali ehtiyot qismlar yo'q">
+          Administrator tovar taqsimlaydi — va u shu yerda paydo bo'ladi.
         </Empty>
       ) : (
         <div className="table-wrap">
           <table className="table table-hover">
             <thead>
               <tr>
-                <th>Название</th>
-                <th>Артикул</th>
-                <th>Категория</th>
-                <th>У меня</th>
-                <th>Цена</th>
+                <th>Nomi</th>
+                <th>Artikul</th>
+                <th>Kategoriya</th>
+                <th>Menda</th>
+                <th>Narxi</th>
                 <th></th>
               </tr>
             </thead>
@@ -103,13 +103,13 @@ export function MyStock({ onNavigate }) {
                   <td className="muted">{p.sku || '—'}</td>
                   <td className="muted">{p.category_name || '—'}</td>
                   <td>
-                    <Badge tone={myQty(p) <= 3 ? 'warn' : 'success'}>{myQty(p)} шт.</Badge>
+                    <Badge tone={myQty(p) <= 3 ? 'warn' : 'success'}>{myQty(p)} dona</Badge>
                   </td>
                   <td className="nowrap">{fmtMoney(p.sell_price)}</td>
                   <td className="text-right">
                     <div className="row-actions">
-                      <Button variant="success" size="sm" onClick={() => setSellModal({ part: p })}>Продать</Button>
-                      <Button variant="warning" size="sm" onClick={() => setReturnModal({ part: p })}>Вернуть</Button>
+                      <Button variant="success" size="sm" onClick={() => setSellModal({ part: p })}>Sotish</Button>
+                      <Button variant="warning" size="sm" onClick={() => setReturnModal({ part: p })}>Qaytarish</Button>
                     </div>
                   </td>
                 </tr>
@@ -120,21 +120,21 @@ export function MyStock({ onNavigate }) {
       )}
 
       {/* Возврат на склад */}
-      <Modal open={!!returnModal} title="Вернуть товар на склад" onClose={() => setReturnModal(null)}>
+      <Modal open={!!returnModal} title="Tovarni omborga qaytarish" onClose={() => setReturnModal(null)}>
         {returnModal && (
           <form onSubmit={doReturn} className="form-grid">
             <p className="muted">
-              <strong>{returnModal.part.name}</strong> — у вас {myQty(returnModal.part)} шт.
+              <strong>{returnModal.part.name}</strong> — sizda {myQty(returnModal.part)} dona.
             </p>
-            <Field label="Количество" required>
+            <Field label="Miqdor" required>
               <input name="quantity" type="number" min="1" max={myQty(returnModal.part)} className="input" defaultValue={1} required />
             </Field>
-            <Field label="Причина возврата" hint="Например, брак, повреждение, не продаётся">
-              <input name="reason" className="input" placeholder="Причина" />
+            <Field label="Qaytarish sababi" hint="Masalan, brak, shikastlanish, sotilmayapti">
+              <input name="reason" className="input" placeholder="Sabab" />
             </Field>
             <div className="form-actions">
-              <Button type="button" variant="ghost" onClick={() => setReturnModal(null)}>Отмена</Button>
-              <Button type="submit" variant="warning">Вернуть на склад</Button>
+              <Button type="button" variant="ghost" onClick={() => setReturnModal(null)}>Bekor qilish</Button>
+              <Button type="submit" variant="warning">Omborga qaytarish</Button>
             </div>
           </form>
         )}

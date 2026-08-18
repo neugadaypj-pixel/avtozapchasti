@@ -93,26 +93,26 @@ export function InventoryPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Склад и распределение</h2>
-        <p className="muted">Управляйте остатками: приход из Китая, распределение по рабочим, передача между ними</p>
+        <h2>Ombor va taqsimlash</h2>
+        <p className="muted">Qoldiqlarni boshqaring: Xitoydan kirim, ishchilarga taqsimlash, ular orasida o'tkazish</p>
       </div>
 
       <div className="action-row">
         <input
           className="input search-input"
-          placeholder="Поиск запчасти…"
+          placeholder="Ehtiyot qism qidirish…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button onClick={() => setRestockModal({})}>📥 Приход на склад</Button>
-        <Button onClick={() => setAssignModal({})}>🚚 Распределить рабочим</Button>
-        <Button variant="secondary" onClick={() => setTransferModal({})}>🔄 Между рабочими</Button>
+        <Button onClick={() => setRestockModal({})}>📥 Omborga kirim</Button>
+        <Button onClick={() => setAssignModal({})}>🚚 Ishchilarga taqsimlash</Button>
+        <Button variant="secondary" onClick={() => setTransferModal({})}>🔄 Ishchilar orasida</Button>
       </div>
 
       {loading ? (
         <Spinner />
       ) : parts.length === 0 ? (
-        <Empty title="Запчастей нет" />
+        <Empty title="Ehtiyot qismlar yo'q" />
       ) : (
         <div className="table-wrap">
           <table className="table">

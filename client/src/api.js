@@ -93,5 +93,9 @@ export const API = {
   audit: {
     list: () => api('/audit'),
   },
+  notifications: {
+    list: () => api('/notifications'),
+    read: (ids) => api('/notifications/read', { method: 'POST', body: { ids } }),
+  },
   dashboard: () => api('/dashboard'),
 };
