@@ -56,8 +56,8 @@ router.post('/assign', adminOnly, async (req, res) => {
     return res.status(400).json({ success: false, error: `На складе недостаточно. Доступно: ${warehouseQty}` });
   }
 
+  // Списываем со склада, но НЕ зачисляем рабочему до подтверждения получения.
   await adjustStock(part.id, 'warehouse', null, -qty);
-  await adjustStock(part.id, 'worker', worker.id, qty);
 
   const t = await col('transfers').insert({
     part_id: part.id,
@@ -67,15 +67,41 @@ router.post('/assign', adminOnly, async (req, res) => {
     to_worker_id: worker.id,
     type: 'assign',
     reason: reason || null,
+    status: 'pending',
+    confirmed_at: null,
     created_by: req.user.id,
     created_at: new Date().toISOString(),
   });
 
-  await logAction(req.user, 'assign', 'transfer', t.id, { part: part.name, quantity: qty, to: worker.full_name });
-  await notify(worker.id, 'assign', `Sizga yangi tovar berildi: ${part.name} (${qty} dona)`, {
-    part_id: part.id, quantity: qty,
+  await logAction(req.user, 'assign', 'transfer', t.id, { part: part.name, quantity: qty, to: worker.full_name, status: 'pending' });
+  await notify(worker.id, 'assign', `Sizga yangi tovar yuborildi: ${part.name} (${qty} dona). Qabul qilishni tasdiqlang.`, {
+    part_id: part.id, quantity: qty, transfer_id: t.id,
   });
-  res.status(201).json({ success: true, data: { id: t.id } });
+  res.status(201).json({ success: true, data: { id: t.id, status: 'pending' } });
+});
+
+// Подтверждение получения товара рабочим.
+router.post('/:id/confirm', async (req, res) => {
+  const id = Number(req.params.id);
+  const t = await col('transfers').findOne({ id });
+  if (!t) return res.status(404).json({ success: false, error: "O'tkazma topilmadi" });
+
+  if (t.to_worker_id !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, error: "Birovning o'tkazmasini tasdiqlab bo'lmaydi" });
+  }
+  if (t.status === 'completed') {
+    return res.status(400).json({ success: false, error: "O'tkazma allaqachon tasdiqlangan" });
+  }
+
+  // Зачисляем товар рабочему.
+  await adjustStock(t.part_id, 'worker', t.to_worker_id, t.quantity);
+
+  await col('transfers').update({ id }, {
+    $set: { status: 'completed', confirmed_at: new Date().toISOString() },
+  });
+  await logAction(req.user, 'assign_confirm', 'transfer', id, { quantity: t.quantity });
+
+  res.json({ success: true });
 });
 
 // Возврат товара на склад.

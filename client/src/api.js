@@ -71,6 +71,13 @@ export const API = {
     return: (body) => api('/transfers/return', { method: 'POST', body }),
     restock: (body) => api('/transfers/restock', { method: 'POST', body }),
     workerTransfer: (body) => api('/transfers/worker-transfer', { method: 'POST', body }),
+    confirm: (id) => api(`/transfers/${id}/confirm`, { method: 'POST' }),
+  },
+  orders: {
+    list: () => api('/orders'),
+    create: (body) => api('/orders', { method: 'POST', body }),
+    confirm: (id, body) => api(`/orders/${id}/confirm`, { method: 'POST', body }),
+    debts: () => api('/orders/debts'),
   },
   sales: {
     list: () => api('/sales'),

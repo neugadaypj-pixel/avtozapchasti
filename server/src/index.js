@@ -77,6 +77,7 @@ app.use('/api/uploads', auth, require('./routes/uploads'));
 app.use('/api/audit', auth, require('./routes/audit'));
 app.use('/api/money', auth, require('./routes/money'));
 app.use('/api/notifications', auth, require('./routes/notifications'));
+app.use('/api/orders', auth, require('./routes/orders'));
 
 // Раздача собранного фронтенда (client/dist), если он собран.
 // Для продакшена Render собирает фронт и отдаёт его этим же сервером.

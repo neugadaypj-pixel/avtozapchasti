@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
+import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, useToast } from '../components/ui.jsx';
 
 export function InventoryPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [parts, setParts] = useState([]);
   const [workers, setWorkers] = useState([]);
@@ -93,20 +95,20 @@ export function InventoryPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Ombor va taqsimlash</h2>
-        <p className="muted">Qoldiqlarni boshqaring: Xitoydan kirim, ishchilarga taqsimlash, ular orasida o'tkazish</p>
+        <h2>{t('inv.title')}</h2>
+        <p className="muted">{t('inv.subtitle')}</p>
       </div>
 
       <div className="action-row">
         <input
           className="input search-input"
-          placeholder="Ehtiyot qism qidirish…"
+          placeholder={t('inv.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button onClick={() => setRestockModal({})}>📥 Omborga kirim</Button>
-        <Button onClick={() => setAssignModal({})}>🚚 Ishchilarga taqsimlash</Button>
-        <Button variant="secondary" onClick={() => setTransferModal({})}>🔄 Ishchilar orasida</Button>
+        <Button onClick={() => setRestockModal({})}>📥 {t('inv.restock')}</Button>
+        <Button onClick={() => setAssignModal({})}>🚚 {t('inv.assign')}</Button>
+        <Button variant="secondary" onClick={() => setTransferModal({})}>🔄 {t('inv.worker_transfer')}</Button>
       </div>
 
       {loading ? (

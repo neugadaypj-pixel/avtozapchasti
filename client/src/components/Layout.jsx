@@ -15,6 +15,7 @@ export function Layout({ current, onNavigate, children }) {
   const adminNav = [
     { id: 'dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
     { id: 'inventory', label: t('nav.inventory'), icon: 'warehouse' },
+    { id: 'orders', label: t('orders.title'), icon: 'transfers' },
     { id: 'parts', label: t('nav.parts'), icon: 'parts' },
     { id: 'workers', label: t('nav.workers'), icon: 'workers' },
     { id: 'sales', label: t('nav.sales'), icon: 'sales' },
