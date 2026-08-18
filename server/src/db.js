@@ -39,6 +39,9 @@ async function ensureIndexes(d) {
   await d.collection('transfers').createIndex({ created_at: -1 });
   // Аудит-лог.
   await d.collection('audit_logs').createIndex({ created_at: -1 });
+  // Расходы.
+  await d.collection('expenses').createIndex({ worker_id: 1, created_at: -1 });
+  await d.collection('expenses').createIndex({ created_at: -1 });
 }
 
 // Получить следующий числовой id для коллекции.

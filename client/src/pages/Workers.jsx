@@ -64,27 +64,27 @@ export function WorkersPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Рабочие</h2>
-        <p className="muted">Создавайте аккаунты для работников в разных городах</p>
-        <Button onClick={() => setForm({ mode: 'create', worker: null })}>+ Добавить рабочего</Button>
+        <h2>Ishchilar</h2>
+        <p className="muted">Turli shaharlardagi xodimlar uchun akkauntlar yarating</p>
+        <Button onClick={() => setForm({ mode: 'create', worker: null })}>+ Ishchi qo'shish</Button>
       </div>
 
       {loading ? (
         <Spinner />
       ) : workers.length === 0 ? (
-        <Empty title="Рабочих пока нет" />
+        <Empty title="Ishchilar hali yo'q" />
       ) : (
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Имя</th>
-                <th>Логин</th>
-                <th>Город</th>
-                <th>Телефон</th>
-                <th>Роль</th>
-                <th>Позиций</th>
-                <th>Статус</th>
+                <th>Ism</th>
+                <th>Login</th>
+                <th>Shahar</th>
+                <th>Telefon</th>
+                <th>Rol</th>
+                <th>Pozitsiyalar</th>
+                <th>Holat</th>
                 <th></th>
               </tr>
             </thead>
@@ -97,13 +97,13 @@ export function WorkersPage() {
                   <td className="muted">{w.phone || '—'}</td>
                   <td>
                     <Badge tone={w.role === 'admin' ? 'info' : 'gray'}>
-                      {w.role === 'admin' ? 'Админ' : 'Рабочий'}
+                      {w.role === 'admin' ? 'Admin' : 'Ishchi'}
                     </Badge>
                   </td>
                   <td>{w.stock_count}</td>
                   <td>
                     <Badge tone={w.is_active ? 'success' : 'danger'}>
-                      {w.is_active ? 'Активен' : 'Заблокирован'}
+                      {w.is_active ? 'Faol' : 'Bloklangan'}
                     </Badge>
                   </td>
                   <td className="text-right">
@@ -128,7 +128,7 @@ export function WorkersPage() {
 
       <Modal
         open={!!form}
-        title={form?.mode === 'create' ? 'Новый рабочий' : 'Редактировать'}
+        title={form?.mode === 'create' ? 'Yangi ishchi' : 'Tahrirlash'}
         onClose={() => setForm(null)}
       >
         {form && <WorkerForm worker={form.worker} onSave={save} onCancel={() => setForm(null)} />}
@@ -158,24 +158,24 @@ function WorkerForm({ worker, onSave, onCancel }) {
 
   return (
     <form onSubmit={submit} className="form-grid">
-      <Field label="Полное имя" required>
-        <input className="input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Имя и фамилия" required />
+      <Field label="To'liq ism" required>
+        <input className="input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ism va familiya" required />
       </Field>
-      <Field label="Логин" required>
+      <Field label="Login" required>
         <input className="input" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="login" required disabled={!!worker} />
       </Field>
-      <Field label={worker ? 'Новый пароль (необязательно)' : 'Пароль'} required={!worker} hint={worker ? 'Оставьте пустым, чтобы не менять' : ''}>
+      <Field label={worker ? 'Yangi parol (majburiy emas)' : 'Parol'} required={!worker} hint={worker ? "O'zgartirmaslik uchun bo'sh qoldiring" : ''}>
         <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required={!worker} autoComplete="new-password" />
       </Field>
-      <Field label="Город">
-        <input className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Например, Самарканд" />
+      <Field label="Shahar">
+        <input className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Masalan, Samarqand" />
       </Field>
-      <Field label="Телефон">
+      <Field label="Telefon">
         <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 …" />
       </Field>
       <div className="form-actions">
-        <Button type="button" variant="ghost" onClick={onCancel}>Отмена</Button>
-        <Button type="submit">{worker ? 'Сохранить' : 'Создать'}</Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>Bekor qilish</Button>
+        <Button type="submit">{worker ? 'Saqlash' : 'Yaratish'}</Button>
       </div>
     </form>
   );

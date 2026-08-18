@@ -10,19 +10,21 @@ export function Layout({ current, onNavigate, children }) {
     { id: 'dashboard', label: 'Обзор', icon: 'dashboard' },
     { id: 'inventory', label: 'Склад', icon: 'warehouse' },
     { id: 'parts', label: 'Каталог', icon: 'parts' },
-    { id: 'workers', label: 'Рабочие', icon: 'workers' },
-    { id: 'sales', label: 'Продажи', icon: 'sales' },
-    { id: 'transfers', label: 'Передачи', icon: 'transfers' },
-    { id: 'categories', label: 'Категории', icon: 'categories' },
-    { id: 'audit', label: 'Журнал действий', icon: 'edit' },
+    { id: 'workers', label: "Ishchilar", icon: 'workers' },
+    { id: 'sales', label: "Sotuvlar", icon: 'sales' },
+    { id: 'transfers', label: "O'tkazmalar", icon: 'transfers' },
+    { id: 'categories', label: "Kategoriyalar", icon: 'categories' },
+    { id: 'money', label: "Moliya", icon: 'money' },
+    { id: 'audit', label: "Harakatlar jurnali", icon: 'edit' },
   ];
 
   const workerNav = [
-    { id: 'dashboard', label: 'Обзор', icon: 'dashboard' },
-    { id: 'my-stock', label: 'Мои запчасти', icon: 'box' },
-    { id: 'parts', label: 'Поиск по базе', icon: 'search' },
-    { id: 'sales', label: 'Мои продажи', icon: 'money' },
-    { id: 'transfers', label: 'Мои передачи', icon: 'transfers' },
+    { id: 'dashboard', label: "Umumiy ko'rinish", icon: 'dashboard' },
+    { id: 'my-stock', label: "Mening ehtiyot qismlarim", icon: 'box' },
+    { id: 'parts', label: "Baza bo'yicha qidiruv", icon: 'search' },
+    { id: 'sales', label: "Mening sotuvlarim", icon: 'money' },
+    { id: 'money', label: "Pul aylanmasi", icon: 'money' },
+    { id: 'transfers', label: "Mening o'tkazmalarim", icon: 'transfers' },
   ];
 
   const nav = isAdmin ? adminNav : workerNav;

@@ -58,10 +58,12 @@ export function InventoryPage() {
     try {
       await API.transfers.restock({
         part_id: Number(fd.get('part_id')),
-        quantity: Number(fd.get('quantity')),
+        expected_quantity: Number(fd.get('expected_quantity')),
+        actual_quantity: Number(fd.get('actual_quantity')),
+        purchase_cost: Number(fd.get('purchase_cost') || 0),
         reason: fd.get('reason'),
       });
-      toast('Склад пополнен', 'success');
+      toast('Omborga qabul qilindi', 'success');
       setRestockModal(null);
       load();
     } catch (err) {
@@ -160,25 +162,31 @@ export function InventoryPage() {
       )}
 
       {/* Приход */}
-      <Modal open={!!restockModal} title="Приход товара на склад" onClose={() => setRestockModal(null)}>
+      <Modal open={!!restockModal} title="Omborga tovar kirimi" onClose={() => setRestockModal(null)}>
         <form onSubmit={doRestock} className="form-grid">
-          <Field label="Запчасть" required>
+          <Field label="Ehtiyot qism" required>
             <select name="part_id" className="input select" required>
-              <option value="">— выберите —</option>
+              <option value="">— tanlang —</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>
               ))}
             </select>
           </Field>
-          <Field label="Количество" required>
-            <input name="quantity" type="number" min="1" className="input" defaultValue={1} required />
+          <Field label="Kutilgan miqdor" required>
+            <input name="expected_quantity" type="number" min="1" className="input" defaultValue={1} required />
           </Field>
-          <Field label="Примечание" hint="Например, номер поставки из Китая">
-            <input name="reason" className="input" placeholder="Поставка №…" />
+          <Field label="Haqiqiy kelgan miqdor" required hint="Agar kam kelsa, qarz hisobga olinadi">
+            <input name="actual_quantity" type="number" min="1" className="input" defaultValue={1} required />
+          </Field>
+          <Field label="Sotib olish narxi (summa)">
+            <input name="purchase_cost" type="number" min="0" className="input" placeholder="0" />
+          </Field>
+          <Field label="Izoh" hint="Masalan, Xitoydan kelgan yetkazib berish raqami">
+            <input name="reason" className="input" placeholder="Yetkazib berish №…" />
           </Field>
           <div className="form-actions">
-            <Button type="button" variant="ghost" onClick={() => setRestockModal(null)}>Отмена</Button>
-            <Button type="submit">Принять на склад</Button>
+            <Button type="button" variant="ghost" onClick={() => setRestockModal(null)}>Bekor qilish</Button>
+            <Button type="submit">Omborga qabul qilish</Button>
           </div>
         </form>
       </Modal>

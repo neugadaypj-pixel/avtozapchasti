@@ -59,8 +59,10 @@ export function MyStock({ onNavigate }) {
         client_name: fd.get('client_name'),
         client_phone: fd.get('client_phone'),
         note: fd.get('note'),
+        payment_type: fd.get('payment_type'),
+        payment_status: fd.get('payment_status'),
       });
-      toast('Продажа оформлена', 'success');
+      toast('Sotuv rasmiylashtirildi', 'success');
       setSellModal(null);
       load();
     } catch (err) {
@@ -139,30 +141,43 @@ export function MyStock({ onNavigate }) {
       </Modal>
 
       {/* Продажа */}
-      <Modal open={!!sellModal} title="Оформить продажу" onClose={() => setSellModal(null)}>
+      <Modal open={!!sellModal} title="Sotuvni rasmiylashtirish" onClose={() => setSellModal(null)}>
         {sellModal && (
           <form onSubmit={doSell} className="form-grid">
             <p className="muted">
-              <strong>{sellModal.part.name}</strong> — у вас {myQty(sellModal.part)} шт.
+              <strong>{sellModal.part.name}</strong> — sizda {myQty(sellModal.part)} dona.
             </p>
-            <Field label="Количество" required>
+            <Field label="Miqdor" required>
               <input name="quantity" type="number" min="1" max={myQty(sellModal.part)} className="input" defaultValue={1} required />
             </Field>
-            <Field label="Цена за единицу">
+            <Field label="Bir dona narxi">
               <input name="unit_price" type="number" min="0" className="input" defaultValue={sellModal.part.sell_price} />
             </Field>
-            <Field label="Клиент">
-              <input name="client_name" className="input" placeholder="Имя клиента" />
+            <Field label="To'lov turi" required>
+              <select name="payment_type" className="input select" required>
+                <option value="cash">Naqd pul</option>
+                <option value="card">Kartaga o'tkazish</option>
+                <option value="bank">Bank hisobiga</option>
+              </select>
             </Field>
-            <Field label="Телефон клиента">
+            <Field label="Qachon to'lanadi?" required>
+              <select name="payment_status" className="input select" required>
+                <option value="paid">Darhol</option>
+                <option value="pending">Keyinroq</option>
+              </select>
+            </Field>
+            <Field label="Mijoz">
+              <input name="client_name" className="input" placeholder="Mijoz ismi" />
+            </Field>
+            <Field label="Mijoz telefoni">
               <input name="client_phone" className="input" placeholder="+998 …" />
             </Field>
-            <Field label="Комментарий">
-              <input name="note" className="input" placeholder="Примечание" />
+            <Field label="Izoh">
+              <input name="note" className="input" placeholder="Izoh" />
             </Field>
             <div className="form-actions">
-              <Button type="button" variant="ghost" onClick={() => setSellModal(null)}>Отмена</Button>
-              <Button type="submit" variant="success">Продать</Button>
+              <Button type="button" variant="ghost" onClick={() => setSellModal(null)}>Bekor qilish</Button>
+              <Button type="submit" variant="success">Sotish</Button>
             </div>
           </form>
         )}

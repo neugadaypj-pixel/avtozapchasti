@@ -75,6 +75,13 @@ export const API = {
   sales: {
     list: () => api('/sales'),
     create: (body) => api('/sales', { method: 'POST', body }),
+    confirm: (id) => api(`/sales/${id}/confirm`, { method: 'POST' }),
+    update: (id, body) => api(`/sales/${id}`, { method: 'PUT', body }),
+  },
+  money: {
+    turnover: (workerId) => api(`/money/turnover${workerId ? `?worker_id=${workerId}` : ''}`),
+    expenses: () => api('/money/expenses'),
+    addExpense: (body) => api('/money/expenses', { method: 'POST', body }),
   },
   uploads: {
     image: (file) => {

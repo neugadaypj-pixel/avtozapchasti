@@ -120,21 +120,32 @@ router.post('/return', async (req, res) => {
 });
 
 // Пополнение склада (приход из Китая) — только админ.
+// Принимает expected_quantity (ожидаемое) и actual_quantity (фактически пришло),
+// а также purchase_cost (сколько потрачено на закупку партии).
 router.post('/restock', adminOnly, async (req, res) => {
-  const { part_id, quantity, reason } = req.body || {};
-  const qty = Number(quantity);
-  if (!part_id || !qty || qty <= 0 || !Number.isInteger(qty)) {
-    return res.status(400).json({ success: false, error: 'Укажите целое положительное количество' });
+  const { part_id, quantity, expected_quantity, actual_quantity, purchase_cost, reason } = req.body || {};
+
+  const expected = expected_quantity !== undefined ? Number(expected_quantity) : Number(quantity);
+  const actual = actual_quantity !== undefined ? Number(actual_quantity) : Number(quantity);
+
+  if (!part_id || !actual || actual <= 0 || !Number.isInteger(actual)) {
+    return res.status(400).json({ success: false, error: "Haqiqiy miqdorni kiriting" });
   }
 
   const part = await col('parts').findOne({ id: Number(part_id) });
-  if (!part) return res.status(404).json({ success: false, error: 'Запчасть не найдена' });
+  if (!part) return res.status(404).json({ success: false, error: "Ehtiyot qism topilmadi" });
 
-  await adjustStock(part.id, 'warehouse', null, qty);
+  await adjustStock(part.id, 'warehouse', null, actual);
+
+  const shortage = Math.max(0, expected - actual); // сколько недопоставили
 
   const t = await col('transfers').insert({
     part_id: part.id,
-    quantity: qty,
+    quantity: actual,
+    expected_quantity: expected,
+    actual_quantity: actual,
+    shortage,
+    purchase_cost: purchase_cost !== undefined ? Number(purchase_cost) : 0,
     from_type: 'supplier',
     to_type: 'warehouse',
     type: 'restock',
@@ -143,8 +154,10 @@ router.post('/restock', adminOnly, async (req, res) => {
     created_at: new Date().toISOString(),
   });
 
-  await logAction(req.user, 'restock', 'transfer', t.id, { part: part.name, quantity: qty });
-  res.status(201).json({ success: true, data: { id: t.id } });
+  await logAction(req.user, 'restock', 'transfer', t.id, {
+    part: part.name, expected, actual, shortage, purchase_cost,
+  });
+  res.status(201).json({ success: true, data: { id: t.id, shortage } });
 });
 
 // Передача между рабочими (админ).

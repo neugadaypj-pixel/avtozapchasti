@@ -34,10 +34,10 @@ export function CategoriesPage() {
   }
 
   async function remove(cat) {
-    if (!confirm(`Удалить категорию «${cat.name}»? Запчасти останутся без категории.`)) return;
+    if (!confirm(`«${cat.name}» kategoriyasini o'chirasizmi? Ehtiyot qismlar kategoriyasiz qoladi.`)) return;
     try {
       await API.categories.remove(cat.id);
-      toast('Категория удалена', 'success');
+      toast("Kategoriya o'chirildi", 'success');
       load();
     } catch (e) {
       toast(e.message, 'error');
@@ -47,15 +47,15 @@ export function CategoriesPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Категории</h2>
-        <p className="muted">Группируйте запчасти для удобного поиска</p>
-        <Button onClick={() => setShowAdd(true)}>+ Добавить категорию</Button>
+        <h2>Kategoriyalar</h2>
+        <p className="muted">Qulay qidiruv uchun ehtiyot qismlarni guruhlang</p>
+        <Button onClick={() => setShowAdd(true)}>+ Kategoriya qo'shish</Button>
       </div>
 
       {loading ? (
         <Spinner />
       ) : categories.length === 0 ? (
-        <Empty title="Категорий нет" />
+        <Empty title="Kategoriyalar yo'q" />
       ) : (
         <div className="card">
           <div className="list">
@@ -63,16 +63,16 @@ export function CategoriesPage() {
               <div className="list-row" key={c.id}>
                 <div>
                   <div className="list-title">🗂️ {c.name}</div>
-                  <div className="muted small">Запчастей: {c.parts_count}</div>
+                  <div className="muted small">Ehtiyot qismlar: {c.parts_count}</div>
                 </div>
-                <Button variant="danger" size="sm" onClick={() => remove(c)}>Удалить</Button>
+                <Button variant="danger" size="sm" onClick={() => remove(c)}>O'chirish</Button>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <Modal open={showAdd} title="Новая категория" onClose={() => setShowAdd(false)}>
+      <Modal open={showAdd} title="Yangi kategoriya" onClose={() => setShowAdd(false)}>
         <CategoryForm onSave={add} onCancel={() => setShowAdd(false)} />
       </Modal>
     </div>
@@ -89,12 +89,12 @@ function CategoryForm({ onSave, onCancel }) {
 
   return (
     <form onSubmit={submit} className="form-grid">
-      <Field label="Название категории" required>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Например, Двигатель" required autoFocus />
+      <Field label="Kategoriya nomi" required>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan, Dvigatel" required autoFocus />
       </Field>
       <div className="form-actions">
-        <Button type="button" variant="ghost" onClick={onCancel}>Отмена</Button>
-        <Button type="submit">Добавить</Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>Bekor qilish</Button>
+        <Button type="submit">Qo'shish</Button>
       </div>
     </form>
   );

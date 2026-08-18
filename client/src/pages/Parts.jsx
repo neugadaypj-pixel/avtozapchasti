@@ -228,8 +228,14 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
     const qty = Number(fd.get('quantity'));
     const price = Number(fd.get('unit_price'));
     try {
-      await API.sales.create({ part_id: part.id, quantity: qty, unit_price: price, client_name: fd.get('client_name'), client_phone: fd.get('client_phone'), note: fd.get('note') });
-      toast('Продажа оформлена', 'success');
+      await API.sales.create({
+        part_id: part.id, quantity: qty, unit_price: price,
+        client_name: fd.get('client_name'), client_phone: fd.get('client_phone'),
+        note: fd.get('note'),
+        payment_type: fd.get('payment_type'),
+        payment_status: fd.get('payment_status'),
+      });
+      toast('Sotuv rasmiylashtirildi', 'success');
       onClose();
       onRefresh();
     } catch (err) {
@@ -272,25 +278,38 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
 
       {!isAdmin && (
         <>
-          <h4 className="section-title">Оформить продажу</h4>
+          <h4 className="section-title">Sotuvni rasmiylashtirish</h4>
           <form onSubmit={doSell} className="form-grid">
-            <Field label="Количество" required>
+            <Field label="Miqdor" required>
               <input name="quantity" type="number" min="1" className="input" placeholder="1" required />
             </Field>
-            <Field label="Цена за единицу">
+            <Field label="Bir dona narxi">
               <input name="unit_price" type="number" min="0" className="input" defaultValue={part.sell_price} />
             </Field>
-            <Field label="Клиент">
-              <input name="client_name" className="input" placeholder="Имя клиента" />
+            <Field label="To'lov turi" required>
+              <select name="payment_type" className="input select" required>
+                <option value="cash">Naqd pul</option>
+                <option value="card">Kartaga o'tkazish</option>
+                <option value="bank">Bank hisobiga</option>
+              </select>
             </Field>
-            <Field label="Телефон клиента">
+            <Field label="Qachon to'lanadi?" required>
+              <select name="payment_status" className="input select" required>
+                <option value="paid">Darhol</option>
+                <option value="pending">Keyinroq</option>
+              </select>
+            </Field>
+            <Field label="Mijoz">
+              <input name="client_name" className="input" placeholder="Mijoz ismi" />
+            </Field>
+            <Field label="Mijoz telefoni">
               <input name="client_phone" className="input" placeholder="+998 …" />
             </Field>
-            <Field label="Комментарий">
-              <input name="note" className="input" placeholder="Примечание" />
+            <Field label="Izoh">
+              <input name="note" className="input" placeholder="Izoh" />
             </Field>
             <div className="form-actions">
-              <Button type="submit">Продать</Button>
+              <Button type="submit">Sotish</Button>
             </div>
           </form>
         </>

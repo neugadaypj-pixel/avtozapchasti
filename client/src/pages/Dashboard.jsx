@@ -23,27 +23,27 @@ export function Dashboard({ onNavigate }) {
     <div className="page">
       <div className="page-head">
         <div>
-          <h2>{isAdmin ? 'Обзор' : 'Мой кабинет'}</h2>
-          <p className="muted">{isAdmin ? 'Состояние склада и продаж' : 'Ваши показатели и товар'}</p>
+          <h2>{isAdmin ? "Umumiy ko'rinish" : 'Mening kabinetim'}</h2>
+          <p className="muted">{isAdmin ? 'Ombor va sotuvlar holati' : "Ko'rsatkichlaringiz va tovar"}</p>
         </div>
       </div>
 
       <div className="stats-grid">
         {isAdmin ? (
           <>
-            <StatCard icon="parts" label="Запчастей в базе" value={stats.total_parts} />
-            <StatCard icon="warehouse" label="На складе" value={stats.warehouse_quantity} sub={`шт.`} />
-            <StatCard icon="workers" label="У рабочих" value={stats.workers_quantity} sub={`${stats.workers_count} рабочих`} />
-            <StatCard icon="alert" label="Мало остатков" value={stats.low_stock_count} tone={stats.low_stock_count > 0 ? 'warn' : ''} />
-            <StatCard icon="money" label="Продано сегодня" value={fmtMoney(stats.sales_today.s)} sub={`${stats.sales_today.c} продаж`} />
-            <StatCard icon="sales" label="Продано за месяц" value={fmtMoney(stats.sales_month.s)} sub={`${stats.sales_month.c} продаж`} />
+            <StatCard icon="parts" label="Bazadagi ehtiyot qismlar" value={stats.total_parts} />
+            <StatCard icon="warehouse" label="Omborda" value={stats.warehouse_quantity} sub={`dona`} />
+            <StatCard icon="workers" label="Ishchilarda" value={stats.workers_quantity} sub={`${stats.workers_count} ishchi`} />
+            <StatCard icon="alert" label="Kam qoldiq" value={stats.low_stock_count} tone={stats.low_stock_count > 0 ? 'warn' : ''} />
+            <StatCard icon="money" label="Bugun sotilgan" value={fmtMoney(stats.sales_today.s)} sub={`${stats.sales_today.c} sotuv`} />
+            <StatCard icon="sales" label="Oyda sotilgan" value={fmtMoney(stats.sales_month.s)} sub={`${stats.sales_month.c} sotuv`} />
           </>
         ) : (
           <>
-            <StatCard icon="box" label="Моих позиций" value={my_stock ? my_stock.length : 0} />
-            <StatCard icon="warehouse" label="Моих единиц" value={my_stock ? my_stock.reduce((s, x) => s + x.quantity, 0) : 0} />
-            <StatCard icon="money" label="Мои продажи (месяц)" value={fmtMoney(stats.sales_month.s)} sub={`${stats.sales_month.c} продаж`} />
-            <StatCard icon="sales" label="Продано сегодня" value={fmtMoney(stats.sales_today.s)} />
+            <StatCard icon="box" label="Mening pozitsiyalarim" value={my_stock ? my_stock.length : 0} />
+            <StatCard icon="warehouse" label="Mening birliklarim" value={my_stock ? my_stock.reduce((s, x) => s + x.quantity, 0) : 0} />
+            <StatCard icon="money" label="Mening sotuvlarim (oy)" value={fmtMoney(stats.sales_month.s)} sub={`${stats.sales_month.c} sotuv`} />
+            <StatCard icon="sales" label="Bugun sotilgan" value={fmtMoney(stats.sales_today.s)} />
           </>
         )}
       </div>
@@ -51,7 +51,7 @@ export function Dashboard({ onNavigate }) {
       <div className="dashboard-main">
         <section className="card">
           <div className="card-head">
-            <h3>Продажи за 7 дней</h3>
+            <h3>7 kunlik sotuvlar</h3>
           </div>
           <SalesChart data={sales_by_day} />
         </section>
@@ -59,10 +59,10 @@ export function Dashboard({ onNavigate }) {
         {isAdmin && (
           <section className="card">
             <div className="card-head">
-              <h3>Топ рабочих за месяц</h3>
+              <h3>Oylik eng yaxshi ishchilar</h3>
             </div>
             {top_workers.length === 0 || top_workers.every((w) => w.total === 0) ? (
-              <Empty title="Продаж пока нет" />
+              <Empty title="Sotuvlar hali yo'q" />
             ) : (
               <div className="list">
                 {top_workers.map((w, i) => (
@@ -86,20 +86,20 @@ export function Dashboard({ onNavigate }) {
       <div className="two-col">
         <section className="card">
           <div className="card-head">
-            <h3>{isAdmin ? 'Последние продажи' : 'Мои последние продажи'}</h3>
-            <button className="link" onClick={() => onNavigate('sales')}>Все →</button>
+            <h3>{isAdmin ? 'Oxirgi sotuvlar' : 'Mening oxirgi sotuvlarim'}</h3>
+            <button className="link" onClick={() => onNavigate('sales')}>Barchasi →</button>
           </div>
           {recent_sales.length === 0 ? (
-            <Empty title="Продаж пока нет" />
+            <Empty title="Sotuvlar hali yo'q" />
           ) : (
             <table className="table">
               <thead>
                 <tr>
-                  <th>Запчасть</th>
-                  {isAdmin && <th>Рабочий</th>}
-                  <th>Кол-во</th>
-                  <th>Сумма</th>
-                  <th>Дата</th>
+                  <th>Ehtiyot qism</th>
+                  {isAdmin && <th>Ishchi</th>}
+                  <th>Miqdor</th>
+                  <th>Summa</th>
+                  <th>Sana</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,20 +120,20 @@ export function Dashboard({ onNavigate }) {
         {!isAdmin && (
           <section className="card">
             <div className="card-head">
-              <h3>Мои запчасти</h3>
-              <button className="link" onClick={() => onNavigate('my-stock')}>Все →</button>
+              <h3>Mening ehtiyot qismlarim</h3>
+              <button className="link" onClick={() => onNavigate('my-stock')}>Barchasi →</button>
             </div>
             {!my_stock || my_stock.length === 0 ? (
-              <Empty title="У вас пока нет запчастей" />
+              <Empty title="Sizda hali ehtiyot qismlar yo'q" />
             ) : (
               <div className="list">
                 {my_stock.slice(0, 8).map((x, i) => (
                   <div className="list-row" key={i}>
                     <div>
                       <div className="list-title">{x.name}</div>
-                      <div className="muted small">{x.sku || '—'} · {x.category_name || 'Без категории'}</div>
+                      <div className="muted small">{x.sku || '—'} · {x.category_name || 'Kategoriyasiz'}</div>
                     </div>
-                    <Badge tone={x.quantity <= 3 ? 'warn' : 'success'}>{x.quantity} шт.</Badge>
+                    <Badge tone={x.quantity <= 3 ? 'warn' : 'success'}>{x.quantity} dona</Badge>
                   </div>
                 ))}
               </div>
