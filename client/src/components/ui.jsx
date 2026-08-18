@@ -121,10 +121,10 @@ export function Badge({ children, tone = 'gray' }) {
 }
 
 /* ---------- Пустое состояние ---------- */
-export function Empty({ title, children }) {
+export function Empty({ title, children, icon = 'box' }) {
   return (
     <div className="empty">
-      <div className="empty-icon"><Icon name="box" size={30} /></div>
+      <div className="empty-icon"><Icon name={icon} size={30} /></div>
       <h4>{title}</h4>
       {children && <p>{children}</p>}
     </div>
@@ -134,6 +134,26 @@ export function Empty({ title, children }) {
 /* ---------- Спиннер ---------- */
 export function Spinner() {
   return <div className="spinner" />;
+}
+
+/* ---------- Скелетон загрузки ---------- */
+export function Skeleton({ variant = 'card', count = 3 }) {
+  if (variant === 'rows') {
+    return (
+      <div className="card" style={{ padding: 20 }}>
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="skeleton skeleton-row" style={{ width: `${90 - i * 10}%` }} />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="stats-grid">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="skeleton skeleton-card" />
+      ))}
+    </div>
+  );
 }
 
 /* ---------- Карточка-статистика ---------- */

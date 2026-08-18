@@ -459,3 +459,35 @@ select.input:hover, select.select:hover { border-color: #d8dce5; }
   .stat-value { font-size: 16px; }
   .stat-label { font-size: 11px; }
 }
+
+/* ---------- Анимации переходов между страницами ---------- */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.content > * { animation: pageIn 0.25s ease; }
+
+/* ---------- Скелетоны загрузки ---------- */
+.skeleton {
+  background: linear-gradient(90deg, #eef0f4 25%, #f7f8fa 50%, #eef0f4 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 8px;
+}
+.skeleton-card { height: 90px; border-radius: var(--radius); }
+.skeleton-row { height: 16px; margin: 8px 0; }
+.skeleton-text { height: 12px; width: 60%; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- Красивые пустые состояния ---------- */
+.empty { text-align: center; padding: 56px 20px; color: var(--muted); }
+.empty-icon {
+  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 20px;
+  background: var(--primary-soft); color: var(--primary);
+  display: flex; align-items: center; justify-content: center; font-size: 30px;
+}
+.empty h4 { color: var(--text); margin-bottom: 6px; font-size: 16px; font-weight: 600; }
+.empty p { font-size: 13px; max-width: 320px; margin: 0 auto; }
