@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n.jsx';
 import { Empty, Spinner, Badge, fmtMoney, fmtDate, Button, Modal, Field, useToast } from '../components/ui.jsx';
 
 const PAYMENT_LABELS = {
-  cash: "Naqd pul",
-  card: "Karta",
-  bank: "Bank",
+  cash: 'cash',
+  card: 'card',
+  bank: 'bank',
 };
 
 export function SalesPage() {
   const { isAdmin } = useAuth();
+  const { t } = useI18n();
   const toast = useToast();
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,10 +35,10 @@ export function SalesPage() {
   useEffect(() => { load(); }, []);
 
   async function confirmPayment(id) {
-    if (!confirm("To'lov qabul qilindi deb tasdiqlaysizmi?")) return;
+    if (!confirm(t('sales.confirm') + '?')) return;
     try {
       await API.sales.confirm(id);
-      toast("To'lov tasdiqlandi", 'success');
+      toast(t('pay.paid'), 'success');
       load();
     } catch (e) {
       toast(e.message, 'error');
@@ -56,7 +58,7 @@ export function SalesPage() {
         payment_type: fd.get('payment_type'),
         payment_status: fd.get('payment_status'),
       });
-      toast("Sotuv yangilandi", 'success');
+      toast(t('common.save'), 'success');
       setEditSale(null);
       load();
     } catch (err) {
@@ -71,7 +73,11 @@ export function SalesPage() {
 
   function exportCsv() {
     const sep = ';';
-    const headers = ['Sana', 'Mahsulot', 'Artikul', isAdmin ? 'Ishchi' : null, 'Mijoz', 'Telefon', 'Miqdor', 'Narx', 'Summa', "To'lov turi", "To'lov holati", 'Izoh'].filter(Boolean);
+    const headers = [
+      t('common.date'), t('sales.product'), t('parts.sku'), isAdmin ? t('sales.worker') : null,
+      t('sales.client'), t('sale.client_phone'), t('common.quantity'), t('common.price'),
+      t('sales.amount'), t('sale.payment_type'), t('common.status'), t('sale.note'),
+    ].filter(Boolean);
     const rows = sales.map((s) => [
       fmtDate(s.created_at),
       s.part_name,
@@ -82,8 +88,8 @@ export function SalesPage() {
       s.quantity,
       s.unit_price,
       s.total,
-      PAYMENT_LABELS[s.payment_type] || s.payment_type,
-      s.payment_status === 'paid' ? "To'langan" : 'Kutilmoqda',
+      t(`sale.${PAYMENT_LABELS[s.payment_type] || 'cash'}`),
+      s.payment_status === 'paid' ? t('pay.paid') : t('pay.pending'),
       s.note || '',
     ].filter((v) => v !== null));
 
@@ -95,7 +101,7 @@ export function SalesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sotuvlar_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `sales_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -109,31 +115,31 @@ export function SalesPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h2>{isAdmin ? 'Sotuvlar' : 'Mening sotuvlarim'}</h2>
+          <h2>{isAdmin ? t('sales.title_admin') : t('sales.title_worker')}</h2>
           <p className="muted">
-            {isAdmin ? "Barcha ishchilar bo'yicha sotuvlar" : 'Sotuvlaringiz tarixi'} · Jami: <strong>{fmtMoney(total)}</strong>
+            {isAdmin ? t('sales.subtitle_admin') : t('sales.subtitle_worker')} · {t('common.total')}: <strong>{fmtMoney(total)}</strong>
           </p>
         </div>
         {sales.length > 0 && (
-          <Button variant="secondary" onClick={exportCsv}>⬇ CSV eksport</Button>
+          <Button variant="secondary" onClick={exportCsv}>⬇ {t('sales.export')}</Button>
         )}
       </div>
 
       {sales.length === 0 ? (
-        <Empty title="Sotuvlar yo'q" />
+        <Empty title={t('sales.no_sales')} />
       ) : (
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Sana</th>
-                <th>Mahsulot</th>
-                {isAdmin && <th>Ishchi</th>}
-                <th>Mijoz</th>
-                <th>Miqdor</th>
-                <th>Narx</th>
-                <th>Summa</th>
-                <th>To'lov</th>
+                <th>{t('common.date')}</th>
+                <th>{t('sales.product')}</th>
+                {isAdmin && <th>{t('sales.worker')}</th>}
+                <th>{t('sales.client')}</th>
+                <th>{t('common.quantity')}</th>
+                <th>{t('common.price')}</th>
+                <th>{t('sales.amount')}</th>
+                <th>{t('sale.payment_type')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -155,15 +161,15 @@ export function SalesPage() {
                   <td className="nowrap"><strong>{fmtMoney(s.total)}</strong></td>
                   <td>
                     <Badge tone={s.payment_status === 'paid' ? 'success' : 'warn'}>
-                      {PAYMENT_LABELS[s.payment_type] || s.payment_type}
+                      {t(`sale.${PAYMENT_LABELS[s.payment_type] || 'cash'}`)}
                       {' · '}
-                      {s.payment_status === 'paid' ? "to'langan" : 'kutilmoqda'}
+                      {s.payment_status === 'paid' ? t('pay.paid') : t('pay.pending')}
                     </Badge>
                   </td>
                   <td className="text-right">
                     <div className="row-actions">
                       {s.payment_status === 'pending' && (
-                        <Button variant="success" size="sm" onClick={() => confirmPayment(s.id)}>To'landi</Button>
+                        <Button variant="success" size="sm" onClick={() => confirmPayment(s.id)}>{t('pay.paid')}</Button>
                       )}
                       {canEdit(s) && (
                         <Button variant="secondary" size="sm" onClick={() => setEditSale(s)}>✏️</Button>
@@ -177,41 +183,40 @@ export function SalesPage() {
         </div>
       )}
 
-      {/* Редактирование продажи */}
-      <Modal open={!!editSale} title="Sotuvni tahrirlash" onClose={() => setEditSale(null)}>
+      <Modal open={!!editSale} title={t('sales.edit')} onClose={() => setEditSale(null)}>
         {editSale && (
           <form onSubmit={saveEdit} className="form-grid">
-            <Field label="Miqdor" required>
+            <Field label={t('sale.quantity')} required>
               <input name="quantity" type="number" min="1" className="input" defaultValue={editSale.quantity} required />
             </Field>
-            <Field label="Bir dona narxi" required>
+            <Field label={t('sale.unit_price')} required>
               <input name="unit_price" type="number" min="0" className="input" defaultValue={editSale.unit_price} required />
             </Field>
-            <Field label="Mijoz">
+            <Field label={t('sale.client')}>
               <input name="client_name" className="input" defaultValue={editSale.client_name || ''} />
             </Field>
-            <Field label="Mijoz telefoni">
+            <Field label={t('sale.client_phone')}>
               <input name="client_phone" className="input" defaultValue={editSale.client_phone || ''} />
             </Field>
-            <Field label="Izoh">
+            <Field label={t('sale.note')}>
               <input name="note" className="input" defaultValue={editSale.note || ''} />
             </Field>
-            <Field label="To'lov turi" required>
+            <Field label={t('sale.payment_type')} required>
               <select name="payment_type" className="input select" defaultValue={editSale.payment_type} required>
-                <option value="cash">Naqd pul</option>
-                <option value="card">Karta</option>
-                <option value="bank">Bank</option>
+                <option value="cash">{t('sale.cash')}</option>
+                <option value="card">{t('sale.card')}</option>
+                <option value="bank">{t('sale.bank')}</option>
               </select>
             </Field>
-            <Field label="To'lov holati" required>
+            <Field label={t('common.status')} required>
               <select name="payment_status" className="input select" defaultValue={editSale.payment_status} required>
-                <option value="paid">To'langan</option>
-                <option value="pending">Kutilmoqda</option>
+                <option value="paid">{t('pay.paid')}</option>
+                <option value="pending">{t('pay.pending')}</option>
               </select>
             </Field>
             <div className="form-actions">
-              <Button type="button" variant="ghost" onClick={() => setEditSale(null)}>Bekor qilish</Button>
-              <Button type="submit">Saqlash</Button>
+              <Button type="button" variant="ghost" onClick={() => setEditSale(null)}>{t('common.cancel')}</Button>
+              <Button type="submit">{t('common.save')}</Button>
             </div>
           </form>
         )}

@@ -810,6 +810,20 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   margin-bottom: 16px;
 }
 
+.login-lang {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.login-lang .demo-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 /* ---------- Уведомления ---------- */
 .notif-wrap { position: relative; }
 .notif-badge {

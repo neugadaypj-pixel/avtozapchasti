@@ -1,34 +1,36 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { API } from '../api.js';
+import { useI18n } from '../i18n.jsx';
 import { Icon, fmtDate } from './ui.jsx';
 
 export function Layout({ current, onNavigate, children }) {
   const { user, isAdmin, logout } = useAuth();
+  const { t, lang, toggleLang } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifs, setNotifs] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef(null);
 
   const adminNav = [
-    { id: 'dashboard', label: "Umumiy ko'rinish", icon: 'dashboard' },
-    { id: 'inventory', label: 'Ombor', icon: 'warehouse' },
-    { id: 'parts', label: 'Katalog', icon: 'parts' },
-    { id: 'workers', label: "Ishchilar", icon: 'workers' },
-    { id: 'sales', label: "Sotuvlar", icon: 'sales' },
-    { id: 'transfers', label: "O'tkazmalar", icon: 'transfers' },
-    { id: 'categories', label: "Kategoriyalar", icon: 'categories' },
-    { id: 'money', label: "Moliya", icon: 'money' },
-    { id: 'audit', label: "Harakatlar jurnali", icon: 'edit' },
+    { id: 'dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+    { id: 'inventory', label: t('nav.inventory'), icon: 'warehouse' },
+    { id: 'parts', label: t('nav.parts'), icon: 'parts' },
+    { id: 'workers', label: t('nav.workers'), icon: 'workers' },
+    { id: 'sales', label: t('nav.sales'), icon: 'sales' },
+    { id: 'transfers', label: t('nav.transfers'), icon: 'transfers' },
+    { id: 'categories', label: t('nav.categories'), icon: 'categories' },
+    { id: 'money', label: t('nav.money'), icon: 'money' },
+    { id: 'audit', label: t('nav.audit'), icon: 'edit' },
   ];
 
   const workerNav = [
-    { id: 'dashboard', label: "Umumiy ko'rinish", icon: 'dashboard' },
-    { id: 'my-stock', label: "Mening ehtiyot qismlarim", icon: 'box' },
-    { id: 'parts', label: "Baza bo'yicha qidiruv", icon: 'search' },
-    { id: 'sales', label: "Mening sotuvlarim", icon: 'money' },
-    { id: 'money', label: "Pul aylanmasi", icon: 'money' },
-    { id: 'transfers', label: "Mening o'tkazmalarim", icon: 'transfers' },
+    { id: 'dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+    { id: 'my-stock', label: t('nav.mystock'), icon: 'box' },
+    { id: 'parts', label: t('nav.search'), icon: 'search' },
+    { id: 'sales', label: t('nav.mysales'), icon: 'money' },
+    { id: 'money', label: t('nav.mymoney'), icon: 'money' },
+    { id: 'transfers', label: t('nav.mytransfers'), icon: 'transfers' },
   ];
 
   const nav = isAdmin ? adminNav : workerNav;
@@ -79,12 +81,12 @@ export function Layout({ current, onNavigate, children }) {
             <Icon name="parts" size={22} />
           </div>
           <div className="brand-text">
-            <strong>ZapChast</strong>
-            <span>{isAdmin ? 'Boshqaruv paneli' : 'Ish joyi'}</span>
+            <strong>{t('app.name')}</strong>
+            <span>{isAdmin ? t('nav.admin_panel') : t('nav.workplace')}</span>
           </div>
         </div>
 
-        <div className="nav-label">{isAdmin ? "Bo'limlar" : 'Menyu'}</div>
+        <div className="nav-label">{isAdmin ? t('nav.sections') : t('nav.menu')}</div>
         <nav className="nav">
           {nav.map((item) => (
             <button
@@ -108,13 +110,17 @@ export function Layout({ current, onNavigate, children }) {
             <div className="user-meta">
               <div className="user-name">{user?.full_name}</div>
               <div className="user-role">
-                {isAdmin ? 'Administrator' : (user?.city || 'Ishchi')}
+                {isAdmin ? t('role.admin') : (user?.city || t('role.worker'))}
               </div>
             </div>
           </div>
+          <button className="btn-logout" onClick={toggleLang}>
+            <Icon name="edit" size={16} />
+            <span>{lang === 'uz' ? 'Русский' : "O'zbekcha"}</span>
+          </button>
           <button className="btn-logout" onClick={logout}>
             <Icon name="logout" size={16} />
-            <span>Chiqish</span>
+            <span>{t('nav.logout')}</span>
           </button>
         </div>
       </aside>
@@ -127,6 +133,10 @@ export function Layout({ current, onNavigate, children }) {
           <div className="topbar-title">{nav.find((n) => n.id === current)?.label || ''}</div>
           <div className="topbar-spacer" />
 
+          <button className="icon-btn" onClick={toggleLang} title="Til">
+            <span style={{ fontSize: 13, fontWeight: 600 }}>{lang === 'uz' ? 'RU' : 'UZ'}</span>
+          </button>
+
           {!isAdmin && (
             <div className="notif-wrap" ref={notifRef}>
               <button className="icon-btn" onClick={openNotifs} aria-label="Bildirishnomalar">
@@ -135,9 +145,9 @@ export function Layout({ current, onNavigate, children }) {
               </button>
               {notifOpen && (
                 <div className="notif-dropdown">
-                  <div className="notif-head">Bildirishnomalar</div>
+                  <div className="notif-head">{t('nav.notifications')}</div>
                   {notifs.length === 0 ? (
-                    <div className="notif-empty">Bildirishnomalar yo'q</div>
+                    <div className="notif-empty">{t('nav.no_notifications')}</div>
                   ) : (
                     notifs.slice(0, 15).map((n) => (
                       <div key={n.id} className={`notif-item ${!n.read ? 'unread' : ''}`}>
@@ -155,7 +165,7 @@ export function Layout({ current, onNavigate, children }) {
             <div className="avatar avatar-sm">{initials}</div>
             <div className="topbar-user-meta">
               <span className="topbar-name">{user?.full_name}</span>
-              <span className="topbar-role">{isAdmin ? 'Administrator' : 'Ishchi'}</span>
+              <span className="topbar-role">{isAdmin ? t('role.admin') : t('role.worker')}</span>
             </div>
           </div>
         </header>

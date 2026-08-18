@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
+import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, useToast } from '../components/ui.jsx';
 
 export function CategoriesPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,15 +49,15 @@ export function CategoriesPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Kategoriyalar</h2>
-        <p className="muted">Qulay qidiruv uchun ehtiyot qismlarni guruhlang</p>
-        <Button onClick={() => setShowAdd(true)}>+ Kategoriya qo'shish</Button>
+        <h2>{t('cat.title')}</h2>
+        <p className="muted">{t('cat.subtitle')}</p>
+        <Button onClick={() => setShowAdd(true)}>+ {t('cat.add')}</Button>
       </div>
 
       {loading ? (
         <Spinner />
       ) : categories.length === 0 ? (
-        <Empty title="Kategoriyalar yo'q" />
+        <Empty title={t('cat.title')} />
       ) : (
         <div className="card">
           <div className="list">
@@ -63,16 +65,16 @@ export function CategoriesPage() {
               <div className="list-row" key={c.id}>
                 <div>
                   <div className="list-title">🗂️ {c.name}</div>
-                  <div className="muted small">Ehtiyot qismlar: {c.parts_count}</div>
+                  <div className="muted small">{t('parts.category')}: {c.parts_count}</div>
                 </div>
-                <Button variant="danger" size="sm" onClick={() => remove(c)}>O'chirish</Button>
+                <Button variant="danger" size="sm" onClick={() => remove(c)}>{t('common.delete')}</Button>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <Modal open={showAdd} title="Yangi kategoriya" onClose={() => setShowAdd(false)}>
+      <Modal open={showAdd} title={t('cat.new')} onClose={() => setShowAdd(false)}>
         <CategoryForm onSave={add} onCancel={() => setShowAdd(false)} />
       </Modal>
     </div>
@@ -80,6 +82,7 @@ export function CategoriesPage() {
 }
 
 function CategoryForm({ onSave, onCancel }) {
+  const { t } = useI18n();
   const [name, setName] = useState('');
 
   function submit(e) {
@@ -89,12 +92,12 @@ function CategoryForm({ onSave, onCancel }) {
 
   return (
     <form onSubmit={submit} className="form-grid">
-      <Field label="Kategoriya nomi" required>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan, Dvigatel" required autoFocus />
+      <Field label={t('cat.name')} required>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cat.name')} required autoFocus />
       </Field>
       <div className="form-actions">
-        <Button type="button" variant="ghost" onClick={onCancel}>Bekor qilish</Button>
-        <Button type="submit">Qo'shish</Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>{t('common.cancel')}</Button>
+        <Button type="submit">{t('common.add')}</Button>
       </div>
     </form>
   );

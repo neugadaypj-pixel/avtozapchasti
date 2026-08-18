@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast } from '../components/ui.jsx';
 
 const PAYMENT_LABELS = {
@@ -17,6 +18,7 @@ const EXPENSE_LABELS = {
 
 export function MoneyPage() {
   const { user, isAdmin } = useAuth();
+  const { t } = useI18n();
   const toast = useToast();
   const [turnover, setTurnover] = useState(null);
   const [expenses, setExpenses] = useState([]);
@@ -81,27 +83,27 @@ export function MoneyPage() {
 
   if (loading) return <Spinner />;
 
-  const t = turnover;
+  const turnoverData = turnover;
   const pendingSales = sales.filter((s) => s.payment_status === 'pending');
 
   return (
     <div className="page">
       <div className="page-head">
         <div>
-          <h2>{isAdmin ? 'Moliya' : 'Pul aylanmasi'}</h2>
+          <h2>{isAdmin ? t('money.title_admin') : t('money.title_worker')}</h2>
           <p className="muted">
-            {isAdmin ? "Barcha ishchilarning pul aylanmasi va daromadlari" : "Sizning aylanmangiz, qarzingiz va xarajatlaringiz"}
+            {isAdmin ? t('money.subtitle_admin') : t('money.subtitle_worker')}
           </p>
         </div>
         {!isAdmin && (
-          <Button onClick={() => setShowExpense(true)}>+ Xarajat qo'shish</Button>
+          <Button onClick={() => setShowExpense(true)}>+ {t('money.add_expense')}</Button>
         )}
       </div>
 
       {isAdmin && (
         <div className="filter-bar">
           <select className="input select" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
-            <option value="">Barcha ishchilar</option>
+            <option value="">{t('common.all')}</option>
             {workers.map((w) => (
               <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
             ))}
@@ -110,9 +112,9 @@ export function MoneyPage() {
       )}
 
       {isAdmin && !selectedWorker ? (
-        <AdminTurnover t={t} />
+        <AdminTurnover t={turnoverData} />
       ) : (
-        <WorkerTurnover t={t} />
+        <WorkerTurnover t={turnoverData} />
       )}
 
       {/* Кнопка подтверждения оплаты для pending продаж */}

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, useToast } from '../components/ui.jsx';
 
 export function WorkersPage() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const toast = useToast();
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,27 +66,27 @@ export function WorkersPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Ishchilar</h2>
-        <p className="muted">Turli shaharlardagi xodimlar uchun akkauntlar yarating</p>
-        <Button onClick={() => setForm({ mode: 'create', worker: null })}>+ Ishchi qo'shish</Button>
+        <h2>{t('workers.title')}</h2>
+        <p className="muted">{t('workers.subtitle')}</p>
+        <Button onClick={() => setForm({ mode: 'create', worker: null })}>+ {t('workers.add')}</Button>
       </div>
 
       {loading ? (
         <Spinner />
       ) : workers.length === 0 ? (
-        <Empty title="Ishchilar hali yo'q" />
+        <Empty title={t('workers.title')} />
       ) : (
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Ism</th>
-                <th>Login</th>
-                <th>Shahar</th>
-                <th>Telefon</th>
-                <th>Rol</th>
-                <th>Pozitsiyalar</th>
-                <th>Holat</th>
+                <th>{t('workers.name')}</th>
+                <th>{t('workers.username')}</th>
+                <th>{t('workers.city')}</th>
+                <th>{t('workers.phone')}</th>
+                <th>{t('workers.role')}</th>
+                <th>{t('workers.positions')}</th>
+                <th>{t('common.status')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -97,13 +99,13 @@ export function WorkersPage() {
                   <td className="muted">{w.phone || '—'}</td>
                   <td>
                     <Badge tone={w.role === 'admin' ? 'info' : 'gray'}>
-                      {w.role === 'admin' ? 'Admin' : 'Ishchi'}
+                      {w.role === 'admin' ? t('role.admin') : t('role.worker')}
                     </Badge>
                   </td>
                   <td>{w.stock_count}</td>
                   <td>
                     <Badge tone={w.is_active ? 'success' : 'danger'}>
-                      {w.is_active ? 'Faol' : 'Bloklangan'}
+                      {w.is_active ? t('role.active') : t('role.blocked')}
                     </Badge>
                   </td>
                   <td className="text-right">
@@ -128,7 +130,7 @@ export function WorkersPage() {
 
       <Modal
         open={!!form}
-        title={form?.mode === 'create' ? 'Yangi ishchi' : 'Tahrirlash'}
+        title={form?.mode === 'create' ? t('workers.new') : t('common.edit')}
         onClose={() => setForm(null)}
       >
         {form && <WorkerForm worker={form.worker} onSave={save} onCancel={() => setForm(null)} />}
@@ -138,6 +140,7 @@ export function WorkersPage() {
 }
 
 function WorkerForm({ worker, onSave, onCancel }) {
+  const { t } = useI18n();
   const [fullName, setFullName] = useState(worker?.full_name || '');
   const [username, setUsername] = useState(worker?.username || '');
   const [password, setPassword] = useState('');
@@ -158,24 +161,24 @@ function WorkerForm({ worker, onSave, onCancel }) {
 
   return (
     <form onSubmit={submit} className="form-grid">
-      <Field label="To'liq ism" required>
-        <input className="input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ism va familiya" required />
+      <Field label={t('workers.full_name')} required>
+        <input className="input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('workers.full_name')} required />
       </Field>
-      <Field label="Login" required>
+      <Field label={t('workers.username')} required>
         <input className="input" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="login" required disabled={!!worker} />
       </Field>
-      <Field label={worker ? 'Yangi parol (majburiy emas)' : 'Parol'} required={!worker} hint={worker ? "O'zgartirmaslik uchun bo'sh qoldiring" : ''}>
+      <Field label={worker ? t('workers.new_password') : t('workers.password')} required={!worker}>
         <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required={!worker} autoComplete="new-password" />
       </Field>
-      <Field label="Shahar">
-        <input className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Masalan, Samarqand" />
+      <Field label={t('workers.city')}>
+        <input className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('workers.city')} />
       </Field>
-      <Field label="Telefon">
+      <Field label={t('workers.phone')}>
         <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 …" />
       </Field>
       <div className="form-actions">
-        <Button type="button" variant="ghost" onClick={onCancel}>Bekor qilish</Button>
-        <Button type="submit">{worker ? 'Saqlash' : 'Yaratish'}</Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>{t('common.cancel')}</Button>
+        <Button type="submit">{worker ? t('common.save') : t('common.create')}</Button>
       </div>
     </form>
   );
