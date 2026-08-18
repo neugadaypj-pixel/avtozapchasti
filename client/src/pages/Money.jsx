@@ -246,30 +246,34 @@ function WorkerTurnover({ t }) {
 }
 
 function AdminTurnover({ t }) {
+  const { t: tr } = useI18n();
   if (!t || !t.workers) return <Empty title="Ma'lumot yo'q" />;
   return (
     <>
       <div className="stats-grid">
-        <StatCard icon="money" label="Jami sotuv" value={fmtMoney(t.total.total_sales)} />
-        <StatCard icon="sales" label="Naqd pul" value={fmtMoney(t.total.cash_paid)} />
-        <StatCard icon="warehouse" label="Kartaga" value={fmtMoney(t.total.card_paid)} />
-        <StatCard icon="box" label="Bankka" value={fmtMoney(t.total.bank_paid)} />
-        <StatCard icon="alert" label="Kutilayotgan" value={fmtMoney(t.total.pending)} />
-        <StatCard icon="return" label="Jami xarajat" value={fmtMoney(t.total.expenses_total)} />
+        <StatCard icon="money" label={tr('money.revenue')} value={fmtMoney(t.total.revenue)} />
+        <StatCard icon="box" label={tr('money.cogs')} value={fmtMoney(t.total.cogs)} />
+        <StatCard icon="sales" label={tr('money.total_expenses')} value={fmtMoney(t.total.expenses_total)} />
+        <StatCard icon="money" label={tr('money.profit')} value={fmtMoney(t.total.profit)} tone={t.total.profit >= 0 ? 'success' : 'danger'} />
+        <StatCard icon="warehouse" label={tr('money.card')} value={fmtMoney(t.total.card_paid)} />
+        <StatCard icon="box" label={tr('money.bank')} value={fmtMoney(t.total.bank_paid)} />
+        <StatCard icon="alert" label={tr('money.pending')} value={fmtMoney(t.total.pending)} />
+        <StatCard icon="sales" label={tr('money.cash')} value={fmtMoney(t.total.cash_paid)} />
       </div>
 
       <div className="table-wrap" style={{ marginTop: 16 }}>
         <table className="table">
           <thead>
             <tr>
-              <th>Ishchi</th>
-              <th>Jami sotuv</th>
-              <th>Naqd (topshirish)</th>
-              <th>Karta</th>
-              <th>Bank</th>
-              <th>Kutilmoqda</th>
-              <th>Xarajat</th>
-              <th>Qarz</th>
+              <th>{tr('workers.name')}</th>
+              <th>{tr('money.total_sales')}</th>
+              <th>{tr('money.cash')}</th>
+              <th>{tr('money.card')}</th>
+              <th>{tr('money.bank')}</th>
+              <th>{tr('money.pending')}</th>
+              <th>{tr('money.expenses')}</th>
+              <th>{tr('money.profit')}</th>
+              <th>{tr('money.debt')}</th>
             </tr>
           </thead>
           <tbody>
@@ -282,6 +286,7 @@ function AdminTurnover({ t }) {
                 <td className="nowrap">{fmtMoney(w.bank_paid)}</td>
                 <td className="nowrap">{fmtMoney(w.pending)}</td>
                 <td className="nowrap">{fmtMoney(w.expenses_total)}</td>
+                <td className="nowrap"><Badge tone={w.profit >= 0 ? 'success' : 'danger'}>{fmtMoney(w.profit)}</Badge></td>
                 <td className="nowrap"><Badge tone={w.debt_to_admin > 0 ? 'danger' : 'success'}>{fmtMoney(w.debt_to_admin)}</Badge></td>
               </tr>
             ))}

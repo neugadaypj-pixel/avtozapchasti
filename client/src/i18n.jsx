@@ -153,6 +153,9 @@ const translations = {
     'money.bonus': 'Бонус клиенту',
     'money.other': 'Прочее',
     'money.total_expenses': 'Всего расходов',
+    'money.revenue': 'Выручка (оплачено)',
+    'money.cogs': 'Себестоимость',
+    'money.profit': 'Чистая прибыль',
 
     // склад
     'inv.title': 'Склад и распределение',
@@ -357,6 +360,9 @@ const translations = {
     'money.bonus': 'Mijozga bonus',
     'money.other': 'Boshqa',
     'money.total_expenses': 'Jami xarajat',
+    'money.revenue': "Tushum (to'langan)",
+    'money.cogs': 'Tannarx',
+    'money.profit': 'Sof foyda',
 
     'inv.title': 'Ombor va taqsimlash',
     'inv.subtitle': "Qoldiqlarni boshqaring: Xitoydan kirim, ishchilarga taqsimlash",
