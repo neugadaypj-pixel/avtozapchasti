@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast } from '../components/ui.jsx';
 
 export function MyStock({ onNavigate }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const toast = useToast();
 
   const [stock, setStock] = useState([]);
@@ -40,7 +42,7 @@ export function MyStock({ onNavigate }) {
         quantity: Number(fd.get('quantity')),
         reason: fd.get('reason'),
       });
-      toast('Товар возвращён на склад', 'success');
+      toast(t('mystock.returned'), 'success');
       setReturnModal(null);
       load();
     } catch (err) {
@@ -62,7 +64,7 @@ export function MyStock({ onNavigate }) {
         payment_type: fd.get('payment_type'),
         payment_status: fd.get('payment_status'),
       });
-      toast('Sotuv rasmiylashtirildi', 'success');
+      toast(t('mystock.sold'), 'success');
       setSellModal(null);
       load();
     } catch (err) {
@@ -73,26 +75,26 @@ export function MyStock({ onNavigate }) {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Mening ehtiyot qismlarim</h2>
-        <p className="muted">Sotish uchun sizga berilgan tovar</p>
+        <h2>{t('nav.mystock')}</h2>
+        <p className="muted">{t('mystock.subtitle')}</p>
       </div>
 
       {loading ? (
         <Spinner />
       ) : stock.length === 0 ? (
-        <Empty title="Sizda hali ehtiyot qismlar yo'q">
-          Administrator tovar taqsimlaydi — va u shu yerda paydo bo'ladi.
+        <Empty title={t('dash.no_parts')}>
+          {t('mystock.empty_desc')}
         </Empty>
       ) : (
         <div className="table-wrap">
           <table className="table table-hover">
             <thead>
               <tr>
-                <th>Nomi</th>
-                <th>Artikul</th>
-                <th>Kategoriya</th>
-                <th>Menda</th>
-                <th>Narxi</th>
+                <th>{t('parts.name')}</th>
+                <th>{t('parts.sku')}</th>
+                <th>{t('parts.category')}</th>
+                <th>{t('mystock.mine')}</th>
+                <th>{t('common.price')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -103,13 +105,13 @@ export function MyStock({ onNavigate }) {
                   <td className="muted">{p.sku || '—'}</td>
                   <td className="muted">{p.category_name || '—'}</td>
                   <td>
-                    <Badge tone={myQty(p) <= 3 ? 'warn' : 'success'}>{myQty(p)} dona</Badge>
+                    <Badge tone={myQty(p) <= 3 ? 'warn' : 'success'}>{myQty(p)} {t('common.pieces')}</Badge>
                   </td>
                   <td className="nowrap">{fmtMoney(p.sell_price)}</td>
                   <td className="text-right">
                     <div className="row-actions">
-                      <Button variant="success" size="sm" onClick={() => setSellModal({ part: p })}>Sotish</Button>
-                      <Button variant="warning" size="sm" onClick={() => setReturnModal({ part: p })}>Qaytarish</Button>
+                      <Button variant="success" size="sm" onClick={() => setSellModal({ part: p })}>{t('sale.sell')}</Button>
+                      <Button variant="warning" size="sm" onClick={() => setReturnModal({ part: p })}>{t('mystock.return_btn')}</Button>
                     </div>
                   </td>
                 </tr>
@@ -120,64 +122,64 @@ export function MyStock({ onNavigate }) {
       )}
 
       {/* Возврат на склад */}
-      <Modal open={!!returnModal} title="Tovarni omborga qaytarish" onClose={() => setReturnModal(null)}>
+      <Modal open={!!returnModal} title={t('return.title')} onClose={() => setReturnModal(null)}>
         {returnModal && (
           <form onSubmit={doReturn} className="form-grid">
             <p className="muted">
-              <strong>{returnModal.part.name}</strong> — sizda {myQty(returnModal.part)} dona.
+              <strong>{returnModal.part.name}</strong> — {t('mystock.you_have')} {myQty(returnModal.part)} {t('common.pieces')}.
             </p>
-            <Field label="Miqdor" required>
+            <Field label={t('common.quantity')} required>
               <input name="quantity" type="number" min="1" max={myQty(returnModal.part)} className="input" defaultValue={1} required />
             </Field>
-            <Field label="Qaytarish sababi" hint="Masalan, brak, shikastlanish, sotilmayapti">
-              <input name="reason" className="input" placeholder="Sabab" />
+            <Field label={t('return.reason')} hint={t('return.reason_hint')}>
+              <input name="reason" className="input" placeholder={t('return.reason_placeholder')} />
             </Field>
             <div className="form-actions">
-              <Button type="button" variant="ghost" onClick={() => setReturnModal(null)}>Bekor qilish</Button>
-              <Button type="submit" variant="warning">Omborga qaytarish</Button>
+              <Button type="button" variant="ghost" onClick={() => setReturnModal(null)}>{t('common.cancel')}</Button>
+              <Button type="submit" variant="warning">{t('return.submit')}</Button>
             </div>
           </form>
         )}
       </Modal>
 
       {/* Продажа */}
-      <Modal open={!!sellModal} title="Sotuvni rasmiylashtirish" onClose={() => setSellModal(null)}>
+      <Modal open={!!sellModal} title={t('sale.form')} onClose={() => setSellModal(null)}>
         {sellModal && (
           <form onSubmit={doSell} className="form-grid">
             <p className="muted">
-              <strong>{sellModal.part.name}</strong> — sizda {myQty(sellModal.part)} dona.
+              <strong>{sellModal.part.name}</strong> — {t('mystock.you_have')} {myQty(sellModal.part)} {t('common.pieces')}.
             </p>
-            <Field label="Miqdor" required>
+            <Field label={t('sale.quantity')} required>
               <input name="quantity" type="number" min="1" max={myQty(sellModal.part)} className="input" defaultValue={1} required />
             </Field>
-            <Field label="Bir dona narxi">
+            <Field label={t('sale.unit_price')}>
               <input name="unit_price" type="number" min="0" className="input" defaultValue={sellModal.part.sell_price} />
             </Field>
-            <Field label="To'lov turi" required>
+            <Field label={t('sale.payment_type')} required>
               <select name="payment_type" className="input select" required>
-                <option value="cash">Naqd pul</option>
-                <option value="card">Kartaga o'tkazish</option>
-                <option value="bank">Bank hisobiga</option>
+                <option value="cash">{t('sale.cash')}</option>
+                <option value="card">{t('sale.card')}</option>
+                <option value="bank">{t('sale.bank')}</option>
               </select>
             </Field>
-            <Field label="Qachon to'lanadi?" required>
+            <Field label={t('sale.payment_when')} required>
               <select name="payment_status" className="input select" required>
-                <option value="paid">Darhol</option>
-                <option value="pending">Keyinroq</option>
+                <option value="paid">{t('sale.paid_now')}</option>
+                <option value="pending">{t('sale.paid_later')}</option>
               </select>
             </Field>
-            <Field label="Mijoz">
-              <input name="client_name" className="input" placeholder="Mijoz ismi" />
+            <Field label={t('sale.client')}>
+              <input name="client_name" className="input" placeholder={t('sale.client_placeholder')} />
             </Field>
-            <Field label="Mijoz telefoni">
+            <Field label={t('sale.client_phone')}>
               <input name="client_phone" className="input" placeholder="+998 …" />
             </Field>
-            <Field label="Izoh">
-              <input name="note" className="input" placeholder="Izoh" />
+            <Field label={t('sale.note')}>
+              <input name="note" className="input" placeholder={t('sale.note_placeholder')} />
             </Field>
             <div className="form-actions">
-              <Button type="button" variant="ghost" onClick={() => setSellModal(null)}>Bekor qilish</Button>
-              <Button type="submit" variant="success">Sotish</Button>
+              <Button type="button" variant="ghost" onClick={() => setSellModal(null)}>{t('common.cancel')}</Button>
+              <Button type="submit" variant="success">{t('sale.sell')}</Button>
             </div>
           </form>
         )}

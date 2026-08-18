@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useI18n } from '../i18n.jsx';
 
 /* ---------- Иконки (минималистичные SVG) ---------- */
 export function Icon({ name, size = 18 }) {
@@ -92,6 +93,7 @@ export function Field({ label, hint, children, required }) {
 
 /* ---------- Модальное окно ---------- */
 export function Modal({ open, title, onClose, children, footer, wide }) {
+  const { t } = useI18n();
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') onClose && onClose();
@@ -106,7 +108,7 @@ export function Modal({ open, title, onClose, children, footer, wide }) {
       <div className={`modal ${wide ? 'modal-wide' : ''}`}>
         <div className="modal-head">
           <h3>{title}</h3>
-          <button className="icon-btn" onClick={onClose} aria-label="Закрыть">✕</button>
+          <button className="icon-btn" onClick={onClose} aria-label={t('common.close')}>✕</button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-footer">{footer}</div>}

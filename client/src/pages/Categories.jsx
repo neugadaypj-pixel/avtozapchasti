@@ -27,7 +27,7 @@ export function CategoriesPage() {
   async function add(name) {
     try {
       await API.categories.create(name);
-      toast('Категория добавлена', 'success');
+      toast(t('cat.added'), 'success');
       setShowAdd(false);
       load();
     } catch (e) {
@@ -36,10 +36,10 @@ export function CategoriesPage() {
   }
 
   async function remove(cat) {
-    if (!confirm(`«${cat.name}» kategoriyasini o'chirasizmi? Ehtiyot qismlar kategoriyasiz qoladi.`)) return;
+    if (!confirm(`${t('cat.delete_confirm')} «${cat.name}»? ${t('cat.delete_hint')}`)) return;
     try {
       await API.categories.remove(cat.id);
-      toast("Kategoriya o'chirildi", 'success');
+      toast(t('cat.deleted'), 'success');
       load();
     } catch (e) {
       toast(e.message, 'error');

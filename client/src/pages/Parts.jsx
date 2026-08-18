@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast } from '../components/ui.jsx';
 
 export function PartsPage({ onNavigate }) {
   const { isAdmin } = useAuth();
+  const { t } = useI18n();
   const toast = useToast();
 
   const [parts, setParts] = useState([]);
@@ -59,10 +61,10 @@ export function PartsPage({ onNavigate }) {
     try {
       if (form.mode === 'create') {
         await API.parts.create(payload);
-        toast('Запчасть добавлена', 'success');
+        toast(t('parts.created'), 'success');
       } else {
         await API.parts.update(form.part.id, payload);
-        toast('Изменения сохранены', 'success');
+        toast(t('parts.saved'), 'success');
       }
       setForm(null);
       load();
@@ -72,10 +74,10 @@ export function PartsPage({ onNavigate }) {
   }
 
   async function removePart(id) {
-    if (!confirm('Удалить запчасть? Это действие необратимо.')) return;
+    if (!confirm(t('parts.delete_confirm'))) return;
     try {
       await API.parts.remove(id);
-      toast('Запчасть удалена', 'success');
+      toast(t('parts.deleted'), 'success');
       setDetail(null);
       load();
     } catch (e) {
@@ -92,30 +94,30 @@ export function PartsPage({ onNavigate }) {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>{isAdmin ? 'Ehtiyot qismlar' : "Baza bo'yicha qidiruv"}</h2>
+        <h2>{isAdmin ? t('parts.title_admin') : t('parts.title_worker')}</h2>
         <p className="muted">
-          {isAdmin ? 'Ehtiyot qismlar katalogini boshqarish' : "Butun baza bo'yicha qidiring va kimda borligini ko'ring"}
+          {isAdmin ? t('parts.subtitle_admin') : t('parts.subtitle_worker')}
         </p>
         {isAdmin && (
-          <Button onClick={() => setForm({ mode: 'create', part: null })}>+ Ehtiyot qism qo'shish</Button>
+          <Button onClick={() => setForm({ mode: 'create', part: null })}>+ {t('parts.add')}</Button>
         )}
       </div>
 
       <div className="filter-bar">
         <input
           className="input search-input"
-          placeholder="Nomi, artikul, brend bo'yicha qidiruv…"
+          placeholder={t('parts.search_placeholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select className="input select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-          <option value="">Все категории</option>
+          <option value="">{t('parts.all_categories')}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
         <select className="input select" value={brand} onChange={(e) => setBrand(e.target.value)}>
-          <option value="">Все бренды</option>
+          <option value="">{t('parts.all_brands')}</option>
           {brandOptions.map((b) => (
             <option key={b} value={b}>{b}</option>
           ))}
@@ -123,13 +125,13 @@ export function PartsPage({ onNavigate }) {
         {isAdmin && (
           <label className="check">
             <input type="checkbox" checked={lowStock} onChange={(e) => setLowStock(e.target.checked)} />
-            Только мало остатков
+            {t('parts.only_low')}
           </label>
         )}
         {!isAdmin && (
           <label className="check">
             <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} />
-            Только мои
+            {t('parts.only_mine')}
           </label>
         )}
       </div>
@@ -138,18 +140,18 @@ export function PartsPage({ onNavigate }) {
       {loading ? (
         <Spinner />
       ) : parts.length === 0 ? (
-        <Empty title="Ничего не найдено">Попробуйте изменить параметры поиска</Empty>
+        <Empty title={t('parts.nothing_found')}>{t('parts.nothing_found_hint')}</Empty>
       ) : (
         <div className="table-wrap">
           <table className="table table-hover">
             <thead>
               <tr>
-                <th>Nomi</th>
-                <th>Artikul</th>
-                <th>Brend</th>
-                <th>Kategoriya</th>
-                <th>Narxi</th>
-                <th>Mavjudligi</th>
+                <th>{t('parts.name')}</th>
+                <th>{t('parts.sku')}</th>
+                <th>{t('parts.brand')}</th>
+                <th>{t('parts.category')}</th>
+                <th>{t('common.price')}</th>
+                <th>{t('parts.availability')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -158,7 +160,7 @@ export function PartsPage({ onNavigate }) {
                 <tr key={p.id} onClick={() => openDetail(p.id)}>
                   <td>
                     <div className="list-title">{p.name}</div>
-                    {p.low_stock && <Badge tone="warn">kam</Badge>}
+                    {p.low_stock && <Badge tone="warn">{t('parts.low')}</Badge>}
                   </td>
                   <td className="muted">{p.sku || '—'}</td>
                   <td>{p.brand || '—'}</td>
@@ -166,11 +168,11 @@ export function PartsPage({ onNavigate }) {
                   <td className="nowrap">{fmtMoney(p.sell_price)}</td>
                   <td>
                     <Badge tone={p.total > 0 ? 'success' : 'gray'}>
-                      {p.total} dona
+                      {p.total} {t('common.pieces')}
                     </Badge>
                     {p.workers.length > 0 && (
                       <span className="small muted" style={{ marginLeft: 6 }}>
-                        {p.workers.length} ishchida
+                        {p.workers.length} {t('parts.in_workers')}
                       </span>
                     )}
                   </td>
@@ -202,7 +204,7 @@ export function PartsPage({ onNavigate }) {
       {/* Форма добавления/редактирования */}
       <Modal
         open={!!form}
-        title={form?.mode === 'create' ? 'Новая запчасть' : 'Редактировать запчасть'}
+        title={form?.mode === 'create' ? t('parts.new') : t('parts.edit_title')}
         onClose={() => setForm(null)}
         wide
       >
@@ -220,6 +222,7 @@ export function PartsPage({ onNavigate }) {
 }
 
 function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefresh }) {
+  const { t } = useI18n();
   const toast = useToast();
 
   async function doSell(e) {
@@ -235,7 +238,7 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
         payment_type: fd.get('payment_type'),
         payment_status: fd.get('payment_status'),
       });
-      toast('Sotuv rasmiylashtirildi', 'success');
+      toast(t('mystock.sold'), 'success');
       onClose();
       onRefresh();
     } catch (err) {
@@ -249,67 +252,67 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
         <img className="part-photo" src={part.image_url} alt={part.name} />
       )}
       <div className="detail-grid">
-        <div className="detail-field"><span>Artikul</span><strong>{part.sku || '—'}</strong></div>
-        <div className="detail-field"><span>Brend</span><strong>{part.brand || '—'}</strong></div>
-        <div className="detail-field"><span>Kategoriya</span><strong>{part.category_name || '—'}</strong></div>
-        <div className="detail-field"><span>Sotib olish narxi</span><strong>{fmtMoney(part.cost_price)}</strong></div>
-        <div className="detail-field"><span>Sotuv narxi</span><strong>{fmtMoney(part.sell_price)}</strong></div>
-        <div className="detail-field"><span>Jami mavjud</span><strong>{part.total} dona</strong></div>
+        <div className="detail-field"><span>{t('parts.sku')}</span><strong>{part.sku || '—'}</strong></div>
+        <div className="detail-field"><span>{t('parts.brand')}</span><strong>{part.brand || '—'}</strong></div>
+        <div className="detail-field"><span>{t('parts.category')}</span><strong>{part.category_name || '—'}</strong></div>
+        <div className="detail-field"><span>{t('parts.cost_price')}</span><strong>{fmtMoney(part.cost_price)}</strong></div>
+        <div className="detail-field"><span>{t('parts.sell_price')}</span><strong>{fmtMoney(part.sell_price)}</strong></div>
+        <div className="detail-field"><span>{t('parts.total_available')}</span><strong>{part.total} {t('common.pieces')}</strong></div>
       </div>
 
       {part.description && <p className="muted" style={{ marginTop: 12 }}>{part.description}</p>}
 
-      <h4 className="section-title">Qayerda joylashgan</h4>
+      <h4 className="section-title">{t('parts.where')}</h4>
       <div className="availability">
         <div className={`avail-row ${part.warehouse > 0 ? 'avail-ok' : ''}`}>
-          <span>🏭 Asosiy ombor</span>
-          <Badge tone={part.warehouse > 0 ? 'success' : 'gray'}>{part.warehouse} dona</Badge>
+          <span>🏭 {t('parts.warehouse')}</span>
+          <Badge tone={part.warehouse > 0 ? 'success' : 'gray'}>{part.warehouse} {t('common.pieces')}</Badge>
         </div>
         {part.workers.map((w) => (
           <div className="avail-row" key={w.worker_id}>
             <span>👤 {w.full_name} · {w.city || '—'}</span>
-            <Badge tone="success">{w.quantity} dona</Badge>
+            <Badge tone="success">{w.quantity} {t('common.pieces')}</Badge>
           </div>
         ))}
         {part.workers.length === 0 && part.warehouse === 0 && (
-          <p className="muted">Ehtiyot qism hech kimda yo'q.</p>
+          <p className="muted">{t('parts.no_one')}</p>
         )}
       </div>
 
       {!isAdmin && (
         <>
-          <h4 className="section-title">Sotuvni rasmiylashtirish</h4>
+          <h4 className="section-title">{t('sale.form')}</h4>
           <form onSubmit={doSell} className="form-grid">
-            <Field label="Miqdor" required>
+            <Field label={t('sale.quantity')} required>
               <input name="quantity" type="number" min="1" className="input" placeholder="1" required />
             </Field>
-            <Field label="Bir dona narxi">
+            <Field label={t('sale.unit_price')}>
               <input name="unit_price" type="number" min="0" className="input" defaultValue={part.sell_price} />
             </Field>
-            <Field label="To'lov turi" required>
+            <Field label={t('sale.payment_type')} required>
               <select name="payment_type" className="input select" required>
-                <option value="cash">Naqd pul</option>
-                <option value="card">Kartaga o'tkazish</option>
-                <option value="bank">Bank hisobiga</option>
+                <option value="cash">{t('sale.cash')}</option>
+                <option value="card">{t('sale.card')}</option>
+                <option value="bank">{t('sale.bank')}</option>
               </select>
             </Field>
-            <Field label="Qachon to'lanadi?" required>
+            <Field label={t('sale.payment_when')} required>
               <select name="payment_status" className="input select" required>
-                <option value="paid">Darhol</option>
-                <option value="pending">Keyinroq</option>
+                <option value="paid">{t('sale.paid_now')}</option>
+                <option value="pending">{t('sale.paid_later')}</option>
               </select>
             </Field>
-            <Field label="Mijoz">
-              <input name="client_name" className="input" placeholder="Mijoz ismi" />
+            <Field label={t('sale.client')}>
+              <input name="client_name" className="input" placeholder={t('sale.client_placeholder')} />
             </Field>
-            <Field label="Mijoz telefoni">
+            <Field label={t('sale.client_phone')}>
               <input name="client_phone" className="input" placeholder="+998 …" />
             </Field>
-            <Field label="Izoh">
-              <input name="note" className="input" placeholder="Izoh" />
+            <Field label={t('sale.note')}>
+              <input name="note" className="input" placeholder={t('sale.note_placeholder')} />
             </Field>
             <div className="form-actions">
-              <Button type="submit">Sotish</Button>
+              <Button type="submit">{t('sale.sell')}</Button>
             </div>
           </form>
         </>
@@ -317,8 +320,8 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
 
       {isAdmin && (
         <div className="detail-actions">
-          <Button variant="secondary" onClick={onEdit}>✏️ Tahrirlash</Button>
-          <Button variant="danger" onClick={onDelete}>🗑 O'chirish</Button>
+          <Button variant="secondary" onClick={onEdit}>✏️ {t('parts.edit')}</Button>
+          <Button variant="danger" onClick={onDelete}>🗑 {t('parts.delete')}</Button>
         </div>
       )}
     </div>
@@ -326,6 +329,7 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
 }
 
 function PartForm({ part, categories, onSave, onCancel }) {
+  const { t } = useI18n();
   const [name, setName] = useState(part?.name || '');
   const [sku, setSku] = useState(part?.sku || '');
   const [brand, setBrand] = useState(part?.brand || '');
@@ -345,7 +349,7 @@ function PartForm({ part, categories, onSave, onCancel }) {
       const r = await API.uploads.image(file);
       setImageUrl(r.data.url);
     } catch (err) {
-      alert('Не удалось загрузить фото: ' + err.message);
+      alert(t('parts.upload_error') + ' ' + err.message);
     } finally {
       setUploading(false);
     }
@@ -363,60 +367,60 @@ function PartForm({ part, categories, onSave, onCancel }) {
 
   return (
     <form onSubmit={submit} className="form-grid">
-      <Field label="Название" required>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Например, Тормозные колодки" required />
+      <Field label={t('parts.name')} required>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('parts.name_placeholder')} required />
       </Field>
-      <Field label="Артикул (SKU)">
+      <Field label={t('parts.sku')}>
         <input className="input" value={sku} onChange={(e) => setSku(e.target.value)} placeholder="BRK-001" />
       </Field>
-      <Field label="Бренд">
+      <Field label={t('parts.brand')}>
         <input className="input" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Toyota" />
       </Field>
-      <Field label="Категория">
+      <Field label={t('parts.category')}>
         <select className="input select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-          <option value="">Без категории</option>
+          <option value="">{t('parts.no_category')}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
       </Field>
-      <Field label="Закупочная цена">
+      <Field label={t('parts.cost_price')}>
         <input className="input" type="number" min="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} placeholder="0" />
       </Field>
-      <Field label="Цена продажи">
+      <Field label={t('parts.sell_price')}>
         <input className="input" type="number" min="0" value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} placeholder="0" />
       </Field>
       {!part && (
-        <Field label="Начальное количество на складе">
+        <Field label={t('parts.initial_qty')}>
           <input className="input" type="number" min="0" value={initialQty} onChange={(e) => setInitialQty(e.target.value)} placeholder="0" />
         </Field>
       )}
-      <Field label="Описание" hint="Необязательно">
+      <Field label={t('parts.description')} hint={t('common.optional')}>
         <textarea className="input textarea" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
       </Field>
 
       <div className="field field-photo">
-        <span className="field-label">Фото запчасти <em className="req">*</em></span>
+        <span className="field-label">{t('parts.photo')} <em className="req">*</em></span>
         <div className="photo-upload">
           {imageUrl ? (
-            <img className="photo-preview" src={imageUrl} alt="Фото запчасти" />
+            <img className="photo-preview" src={imageUrl} alt={t('parts.photo')} />
           ) : (
             <div className="photo-placeholder">📷</div>
           )}
           <label className="photo-actions">
             <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onFileChange} hidden />
-            <span className="btn btn-secondary btn-sm">{uploading ? 'Загрузка…' : imageUrl ? 'Заменить' : 'Загрузить'}</span>
+            <span className="btn btn-secondary btn-sm">{uploading ? t('common.loading') : imageUrl ? t('parts.replace_photo') : t('parts.upload_photo')}</span>
           </label>
           {imageUrl && (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setImageUrl('')}>Убрать</button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setImageUrl('')}>{t('parts.remove_photo')}</button>
           )}
         </div>
-        <span className="field-hint">Желательно, но не обязательно. JPG, PNG или WEBP до 5 МБ.</span>
+        <span className="field-hint">{t('parts.photo_hint')}</span>
       </div>
 
       <div className="form-actions">
-        <Button type="button" variant="ghost" onClick={onCancel}>Отмена</Button>
-        <Button type="submit">{part ? 'Сохранить' : 'Добавить'}</Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>{t('common.cancel')}</Button>
+        <Button type="submit">{part ? t('common.save') : t('common.add')}</Button>
       </div>
     </form>
   );

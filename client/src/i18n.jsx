@@ -303,6 +303,106 @@ const translations = {
     'audit.entity_order': 'Заказ',
     'audit.entity_category': 'Категория',
     'audit.entity_expense': 'Расход',
+
+    // общие доп.
+    'common.optional': 'Необязательно',
+    'common.select': '— выберите —',
+    'common.workers_short': 'раб.',
+    'common.in_warehouse': 'на складе',
+
+    // склад доп.
+    'inv.assigned': 'Товар распределён рабочему',
+    'inv.restock_done': 'Приход на склад выполнен',
+    'inv.transfer_done': 'Передача между рабочими выполнена',
+    'inv.part': 'Запчасть',
+    'inv.in_warehouse': 'На складе',
+    'inv.with_workers': 'У рабочих',
+    'inv.total': 'Всего',
+    'inv.detail': 'Детализация',
+    'inv.assign_title': 'Распределить товар рабочему',
+    'inv.worker': 'Рабочий',
+    'inv.from_worker': 'От рабочего',
+    'inv.to_worker': 'Кому',
+    'inv.transfer_btn': 'Передать',
+    'inv.assign_btn': 'Распределить',
+    'inv.expected_qty': 'Ожидаемое количество',
+    'inv.actual_qty': 'Фактически пришло',
+    'inv.shortage_hint': 'Если пришло меньше — будет учтён долг',
+    'inv.reason_hint': 'Например, номер поставки из Китая',
+    'inv.delivery_placeholder': 'Поставка №…',
+    'inv.empty': 'Запчастей нет',
+
+    // мои запчасти доп.
+    'mystock.subtitle': 'Товар, выданный вам для продажи',
+    'mystock.empty_desc': 'Администратор распределит товар — и он появится здесь.',
+    'mystock.mine': 'У меня',
+    'mystock.return_btn': 'Вернуть',
+    'mystock.returned': 'Товар возвращён на склад',
+    'mystock.sold': 'Продажа оформлена',
+    'mystock.you_have': 'у вас',
+
+    // возврат/продажа доп.
+    'return.reason_hint': 'Например, брак, повреждение, не продаётся',
+    'return.reason_placeholder': 'Причина',
+    'sale.client_placeholder': 'Имя клиента',
+    'sale.note_placeholder': 'Комментарий',
+
+    // запчасти доп.
+    'parts.nothing_found_hint': 'Попробуйте изменить параметры поиска',
+    'parts.in_workers': 'у рабочих',
+    'parts.no_category': 'Без категории',
+    'parts.replace_photo': 'Заменить',
+    'parts.upload_photo': 'Загрузить',
+    'parts.remove_photo': 'Убрать',
+    'parts.photo_hint': 'Желательно, но не обязательно. JPG, PNG или WEBP до 5 МБ.',
+    'parts.name_placeholder': 'Например, Тормозные колодки',
+    'parts.saved': 'Изменения сохранены',
+    'parts.created': 'Запчасть добавлена',
+    'parts.deleted': 'Запчасть удалена',
+    'parts.delete_confirm': 'Удалить запчасть? Это действие необратимо.',
+    'parts.upload_error': 'Не удалось загрузить фото:',
+
+    // рабочие доп.
+    'workers.added': 'Рабочий добавлен',
+    'workers.updated': 'Данные обновлены',
+    'workers.blocked': 'Аккаунт заблокирован',
+    'workers.unblocked': 'Аккаунт разблокирован',
+    'workers.delete_confirm': 'Удалить рабочего',
+    'workers.deleted': 'Рабочий удалён',
+
+    // категории доп.
+    'cat.added': 'Категория добавлена',
+    'cat.delete_confirm': 'Удалить категорию',
+    'cat.deleted': 'Категория удалена',
+    'cat.delete_hint': 'Запчасти останутся без категории.',
+
+    // финансы доп.
+    'money.expense_added': 'Расход добавлен',
+    'money.confirm_payment_q': 'Подтвердить получение оплаты?',
+    'money.payment_confirmed': 'Оплата подтверждена',
+    'money.pending_payments': 'Ожидающие платежи',
+    'money.pending_none': 'Ожидающих платежей нет',
+    'money.confirm_paid': 'Подтвердить оплату',
+    'money.expenses_title': 'Расходы',
+    'money.expenses_none': 'Расходов нет',
+    'money.type': 'Тип',
+    'money.description': 'Описание',
+    'money.sum': 'Сумма',
+    'money.client': 'Клиент',
+    'money.product': 'Товар',
+    'money.worker': 'Рабочий',
+    'money.count': 'шт.',
+    'money.cash_hand': 'Наличные (сдать)',
+    'money.card_transfer': 'Перевод на карту',
+    'money.bank_transfer': 'На банковский счёт',
+    'money.bonus_company': 'Бонус клиенту (за счёт компании)',
+
+    // дашборд доп.
+    'dash.sales_count': 'продаж',
+    'dash.no_chart_data': 'Нет данных за последние 7 дней',
+
+    // меню доп.
+    'nav.language': 'Язык',
   },
   uz: {
     'app.name': 'ZapChast',
@@ -591,6 +691,106 @@ const translations = {
     'audit.entity_order': 'Buyurtma',
     'audit.entity_category': 'Kategoriya',
     'audit.entity_expense': 'Xarajat',
+
+    // общие доп.
+    'common.optional': 'Majburiy emas',
+    'common.select': '— tanlang —',
+    'common.workers_short': 'ish.',
+    'common.in_warehouse': 'omborda',
+
+    // склад доп.
+    'inv.assigned': "Tovar ishchiga taqsimlandi",
+    'inv.restock_done': 'Omborga kirim bajarildi',
+    'inv.transfer_done': "Ishchilar orasida o'tkazish bajarildi",
+    'inv.part': 'Ehtiyot qism',
+    'inv.in_warehouse': 'Omborda',
+    'inv.with_workers': 'Ishchilarda',
+    'inv.total': 'Jami',
+    'inv.detail': 'Batafsil',
+    'inv.assign_title': 'Tovarni ishchiga taqsimlash',
+    'inv.worker': 'Ishchi',
+    'inv.from_worker': 'Qaysi ishchidan',
+    'inv.to_worker': 'Kimga',
+    'inv.transfer_btn': "O'tkazish",
+    'inv.assign_btn': 'Taqsimlash',
+    'inv.expected_qty': 'Kutilgan miqdor',
+    'inv.actual_qty': 'Haqiqiy kelgan miqdor',
+    'inv.shortage_hint': 'Agar kam kelsa, qarz hisobga olinadi',
+    'inv.reason_hint': 'Masalan, Xitoydan kelgan yetkazib berish raqami',
+    'inv.delivery_placeholder': 'Yetkazib berish №…',
+    'inv.empty': "Ehtiyot qismlar yo'q",
+
+    // мои запчасти доп.
+    'mystock.subtitle': 'Sotish uchun sizga berilgan tovar',
+    'mystock.empty_desc': "Administrator tovar taqsimlaydi — va u shu yerda paydo bo'ladi.",
+    'mystock.mine': 'Menda',
+    'mystock.return_btn': 'Qaytarish',
+    'mystock.returned': "Tovar omborga qaytarildi",
+    'mystock.sold': 'Sotuv rasmiylashtirildi',
+    'mystock.you_have': 'sizda',
+
+    // возврат/продажа доп.
+    'return.reason_hint': 'Masalan, brak, shikastlanish, sotilmayapti',
+    'return.reason_placeholder': 'Sabab',
+    'sale.client_placeholder': 'Mijoz ismi',
+    'sale.note_placeholder': 'Izoh',
+
+    // запчасти доп.
+    'parts.nothing_found_hint': 'Qidiruv parametrlarini o\'zgartirib ko\'ring',
+    'parts.in_workers': 'ishchida',
+    'parts.no_category': 'Kategoriyasiz',
+    'parts.replace_photo': "Almashtirish",
+    'parts.upload_photo': 'Yuklash',
+    'parts.remove_photo': "O'chirish",
+    'parts.photo_hint': 'Majburiy emas. JPG, PNG yoki WEBP 5 MB gacha.',
+    'parts.name_placeholder': 'Masalan, Tormoz kolodkalari',
+    'parts.saved': "O'zgarishlar saqlandi",
+    'parts.created': "Ehtiyot qism qo'shildi",
+    'parts.deleted': "Ehtiyot qism o'chirildi",
+    'parts.delete_confirm': "Ehtiyot qismni o'chirasizmi? Bu amalni ortga qaytarib bo'lmaydi.",
+    'parts.upload_error': 'Rasmni yuklab bo\'lmadi:',
+
+    // рабочие доп.
+    'workers.added': "Ishchi qo'shildi",
+    'workers.updated': "Ma'lumotlar yangilandi",
+    'workers.blocked': 'Akkaunt bloklandi',
+    'workers.unblocked': 'Akkaunt blokdan chiqarildi',
+    'workers.delete_confirm': "Ishchini o'chirish",
+    'workers.deleted': "Ishchi o'chirildi",
+
+    // категории доп.
+    'cat.added': "Kategoriya qo'shildi",
+    'cat.delete_confirm': "Kategoriyani o'chirish",
+    'cat.deleted': "Kategoriya o'chirildi",
+    'cat.delete_hint': 'Ehtiyot qismlar kategoriyasiz qoladi.',
+
+    // финансы доп.
+    'money.expense_added': "Xarajat qo'shildi",
+    'money.confirm_payment_q': "To'lov qabul qilindi deb tasdiqlaysizmi?",
+    'money.payment_confirmed': "To'lov tasdiqlandi",
+    'money.pending_payments': "Kutilayotgan to'lovlar",
+    'money.pending_none': "Kutilayotgan to'lovlar yo'q",
+    'money.confirm_paid': "To'landi deb tasdiqlash",
+    'money.expenses_title': 'Xarajatlar',
+    'money.expenses_none': "Xarajatlar yo'q",
+    'money.type': 'Tur',
+    'money.description': 'Tavsif',
+    'money.sum': 'Summa',
+    'money.client': 'Mijoz',
+    'money.product': 'Mahsulot',
+    'money.worker': 'Ishchi',
+    'money.count': 'dona',
+    'money.cash_hand': 'Naqd pul (topshirilishi kerak)',
+    'money.card_transfer': "Kartaga o'tkazish",
+    'money.bank_transfer': 'Bank hisobiga',
+    'money.bonus_company': 'Mijozga bonus (kompaniya hisobidan)',
+
+    // дашборд доп.
+    'dash.sales_count': 'sotuv',
+    'dash.no_chart_data': "So'nggi 7 kunda ma'lumot yo'q",
+
+    // меню доп.
+    'nav.language': 'Til',
   },
 };
 

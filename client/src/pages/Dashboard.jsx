@@ -73,7 +73,7 @@ export function Dashboard({ onNavigate }) {
                       <span className={`rank rank-${i + 1}`}>{i + 1}</span>
                       <div>
                         <div className="list-title">{w.full_name}</div>
-                        <div className="muted small">{w.city || '—'} · {w.count} продаж</div>
+                        <div className="muted small">{w.city || '—'} · {w.count} {t('dash.sales_count')}</div>
                       </div>
                     </div>
                     <strong>{fmtMoney(w.total)}</strong>
@@ -149,6 +149,7 @@ export function Dashboard({ onNavigate }) {
 
 /* ---------- Простой SVG-график продаж за 7 дней ---------- */
 function SalesChart({ data }) {
+  const { t } = useI18n();
   const rows = useMemo(() => {
     const map = new Map();
     (data || []).forEach((d) => map.set(d.day, d.total));
@@ -179,7 +180,7 @@ function SalesChart({ data }) {
           </div>
         );
       })}
-      {!hasData && <div className="chart-empty">Нет данных за последние 7 дней</div>}
+      {!hasData && <div className="chart-empty">{t('dash.no_chart_data')}</div>}
     </div>
   );
 }

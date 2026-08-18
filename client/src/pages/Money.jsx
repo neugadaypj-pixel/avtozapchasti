@@ -4,17 +4,13 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast } from '../components/ui.jsx';
 
-const PAYMENT_LABELS = {
-  cash: "Naqd pul",
-  card: "Kartaga o'tkazish",
-  bank: "Bank hisobiga",
-};
-
-const EXPENSE_LABELS = {
-  rent: "Ijara",
-  bonus: "Mijozga bonus",
-  other: "Boshqa",
-};
+function expenseLabels(t) {
+  return {
+    rent: t('money.rent'),
+    bonus: t('money.bonus'),
+    other: t('money.other'),
+  };
+}
 
 export function MoneyPage() {
   const { user, isAdmin } = useAuth();
@@ -62,7 +58,7 @@ export function MoneyPage() {
         type: fd.get('type'),
         description: fd.get('description'),
       });
-      toast("Xarajat qo'shildi", 'success');
+      toast(t('money.expense_added'), 'success');
       setShowExpense(false);
       load();
     } catch (err) {
@@ -71,10 +67,10 @@ export function MoneyPage() {
   }
 
   async function confirmPayment(saleId) {
-    if (!confirm("To'lov qabul qilindi deb tasdiqlaysizmi?")) return;
+    if (!confirm(t('money.confirm_payment_q'))) return;
     try {
       await API.sales.confirm(saleId);
-      toast("To'lov tasdiqlandi", 'success');
+      toast(t('money.payment_confirmed'), 'success');
       load();
     } catch (err) {
       toast(err.message, 'error');
@@ -114,27 +110,27 @@ export function MoneyPage() {
       {isAdmin && !selectedWorker ? (
         <AdminTurnover t={turnoverData} />
       ) : (
-        <WorkerTurnover t={turnoverData} />
+        <WorkerTurnover data={turnoverData} />
       )}
 
       {/* Кнопка подтверждения оплаты для pending продаж */}
       <section className="card" style={{ marginTop: 16 }}>
         <div className="card-head">
-          <h3>Kutilayotgan to'lovlar</h3>
-          <Badge tone="warn">{pendingSales.length} ta</Badge>
+          <h3>{t('money.pending_payments')}</h3>
+          <Badge tone="warn">{pendingSales.length} {t('money.count')}</Badge>
         </div>
         {pendingSales.length === 0 ? (
-          <Empty title="Kutilayotgan to'lovlar yo'q" />
+          <Empty title={t('money.pending_none')} />
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Sana</th>
-                  <th>Mijoz</th>
-                  <th>Mahsulot</th>
-                  <th>Summa</th>
-                  {isAdmin && <th>Ishchi</th>}
+                  <th>{t('common.date')}</th>
+                  <th>{t('money.client')}</th>
+                  <th>{t('money.product')}</th>
+                  <th>{t('money.sum')}</th>
+                  {isAdmin && <th>{t('money.worker')}</th>}
                   <th></th>
                 </tr>
               </thead>
@@ -148,7 +144,7 @@ export function MoneyPage() {
                     {isAdmin && <td>{s.worker_name}</td>}
                     <td className="text-right">
                       <Button variant="success" size="sm" onClick={() => confirmPayment(s.id)}>
-                        To'landi deb tasdiqlash
+                        {t('money.confirm_paid')}
                       </Button>
                     </td>
                   </tr>
@@ -162,27 +158,27 @@ export function MoneyPage() {
       {/* Расходы */}
       <section className="card" style={{ marginTop: 16 }}>
         <div className="card-head">
-          <h3>Xarajatlar</h3>
+          <h3>{t('money.expenses_title')}</h3>
         </div>
         {expenses.length === 0 ? (
-          <Empty title="Xarajatlar yo'q" />
+          <Empty title={t('money.expenses_none')} />
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Sana</th>
-                  <th>Tur</th>
-                  <th>Tavsif</th>
-                  {isAdmin && <th>Ishchi</th>}
-                  <th>Summa</th>
+                  <th>{t('common.date')}</th>
+                  <th>{t('money.type')}</th>
+                  <th>{t('money.description')}</th>
+                  {isAdmin && <th>{t('money.worker')}</th>}
+                  <th>{t('money.sum')}</th>
                 </tr>
               </thead>
               <tbody>
                 {expenses.map((x) => (
                   <tr key={x.id}>
                     <td className="muted nowrap">{fmtDate(x.created_at)}</td>
-                    <td><Badge tone="info">{EXPENSE_LABELS[x.type] || x.type}</Badge></td>
+                    <td><Badge tone="info">{expenseLabels(t)[x.type] || x.type}</Badge></td>
                     <td className="muted">{x.description || '—'}</td>
                     {isAdmin && <td>{x.worker_name}</td>}
                     <td className="nowrap"><strong>{fmtMoney(x.amount)}</strong></td>
@@ -195,24 +191,24 @@ export function MoneyPage() {
       </section>
 
       {/* Модалка добавления расхода */}
-      <Modal open={showExpense} title="Xarajat qo'shish" onClose={() => setShowExpense(false)}>
+      <Modal open={showExpense} title={t('money.add_expense')} onClose={() => setShowExpense(false)}>
         <form onSubmit={addExpense} className="form-grid">
-          <Field label="Summa" required>
+          <Field label={t('money.sum')} required>
             <input name="amount" type="number" min="1" className="input" required />
           </Field>
-          <Field label="Tur" required>
+          <Field label={t('money.type')} required>
             <select name="type" className="input select" required>
-              <option value="rent">Ijara</option>
-              <option value="bonus">Mijozga bonus</option>
-              <option value="other">Boshqa</option>
+              <option value="rent">{t('money.rent')}</option>
+              <option value="bonus">{t('money.bonus')}</option>
+              <option value="other">{t('money.other')}</option>
             </select>
           </Field>
-          <Field label="Tavsif" hint="Majburiy emas">
-            <input name="description" className="input" placeholder="Tavsif" />
+          <Field label={t('money.description')} hint={t('common.optional')}>
+            <input name="description" className="input" placeholder={t('money.description')} />
           </Field>
           <div className="form-actions">
-            <Button type="button" variant="ghost" onClick={() => setShowExpense(false)}>Bekor qilish</Button>
-            <Button type="submit">Qo'shish</Button>
+            <Button type="button" variant="ghost" onClick={() => setShowExpense(false)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.add')}</Button>
           </div>
         </form>
       </Modal>
@@ -220,25 +216,26 @@ export function MoneyPage() {
   );
 }
 
-function WorkerTurnover({ t }) {
-  if (!t) return <Empty title="Ma'lumot yo'q" />;
+function WorkerTurnover({ data }) {
+  const { t } = useI18n();
+  if (!data) return <Empty title={t('stats.no_data')} />;
   return (
     <>
       <div className="stats-grid">
-        <StatCard icon="money" label="Jami sotuv" value={fmtMoney(t.total_sales)} />
-        <StatCard icon="sales" label="Naqd pul (topshirilishi kerak)" value={fmtMoney(t.cash_paid)} tone={t.cash_paid > 0 ? 'warn' : ''} />
-        <StatCard icon="warehouse" label="Kartaga o'tkazish" value={fmtMoney(t.card_paid)} />
-        <StatCard icon="box" label="Bank hisobiga" value={fmtMoney(t.bank_paid)} />
-        <StatCard icon="alert" label="Kutilayotgan" value={fmtMoney(t.pending)} />
-        <StatCard icon="return" label="Adminga qarz" value={fmtMoney(t.debt_to_admin)} tone={t.debt_to_admin > 0 ? 'danger' : ''} />
+        <StatCard icon="money" label={t('money.total_sales')} value={fmtMoney(data.total_sales)} />
+        <StatCard icon="sales" label={t('money.cash_hand')} value={fmtMoney(data.cash_paid)} tone={data.cash_paid > 0 ? 'warn' : ''} />
+        <StatCard icon="warehouse" label={t('money.card_transfer')} value={fmtMoney(data.card_paid)} />
+        <StatCard icon="box" label={t('money.bank_transfer')} value={fmtMoney(data.bank_paid)} />
+        <StatCard icon="alert" label={t('money.pending')} value={fmtMoney(data.pending)} />
+        <StatCard icon="return" label={t('money.debt')} value={fmtMoney(data.debt_to_admin)} tone={data.debt_to_admin > 0 ? 'danger' : ''} />
       </div>
       <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-head"><h3>Xarajatlar</h3></div>
+        <div className="card-head"><h3>{t('money.expenses_title')}</h3></div>
         <div className="list">
-          <div className="list-row"><span>Ijara</span><strong>{fmtMoney(t.rent_total)}</strong></div>
-          <div className="list-row"><span>Mijozga bonus (kompaniya hisobidan)</span><strong>{fmtMoney(t.bonus_total)}</strong></div>
-          <div className="list-row"><span>Boshqa</span><strong>{fmtMoney(t.other_total)}</strong></div>
-          <div className="list-row"><span>Jami xarajat</span><strong>{fmtMoney(t.expenses_total)}</strong></div>
+          <div className="list-row"><span>{t('money.rent')}</span><strong>{fmtMoney(data.rent_total)}</strong></div>
+          <div className="list-row"><span>{t('money.bonus_company')}</span><strong>{fmtMoney(data.bonus_total)}</strong></div>
+          <div className="list-row"><span>{t('money.other')}</span><strong>{fmtMoney(data.other_total)}</strong></div>
+          <div className="list-row"><span>{t('money.total_expenses')}</span><strong>{fmtMoney(data.expenses_total)}</strong></div>
         </div>
       </div>
     </>
@@ -247,7 +244,7 @@ function WorkerTurnover({ t }) {
 
 function AdminTurnover({ t }) {
   const { t: tr } = useI18n();
-  if (!t || !t.workers) return <Empty title="Ma'lumot yo'q" />;
+  if (!t || !t.workers) return <Empty title={tr('stats.no_data')} />;
   return (
     <>
       <div className="stats-grid">

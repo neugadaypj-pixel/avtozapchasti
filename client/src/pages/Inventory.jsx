@@ -46,7 +46,7 @@ export function InventoryPage() {
         quantity: Number(fd.get('quantity')),
         reason: fd.get('reason'),
       });
-      toast('Товар распределён рабочему', 'success');
+      toast(t('inv.assigned'), 'success');
       setAssignModal(null);
       load();
     } catch (err) {
@@ -65,7 +65,7 @@ export function InventoryPage() {
         purchase_cost: Number(fd.get('purchase_cost') || 0),
         reason: fd.get('reason'),
       });
-      toast('Omborga qabul qilindi', 'success');
+      toast(t('inv.restock_done'), 'success');
       setRestockModal(null);
       load();
     } catch (err) {
@@ -84,7 +84,7 @@ export function InventoryPage() {
         quantity: Number(fd.get('quantity')),
         reason: fd.get('reason'),
       });
-      toast('Передача между рабочими выполнена', 'success');
+      toast(t('inv.transfer_done'), 'success');
       setTransferModal(null);
       load();
     } catch (err) {
@@ -114,17 +114,17 @@ export function InventoryPage() {
       {loading ? (
         <Spinner />
       ) : parts.length === 0 ? (
-        <Empty title="Ehtiyot qismlar yo'q" />
+        <Empty title={t('inv.empty')} />
       ) : (
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Запчасть</th>
-                <th>На складе</th>
-                <th>У рабочих</th>
-                <th>Всего</th>
-                <th>Детализация</th>
+                <th>{t('inv.part')}</th>
+                <th>{t('inv.in_warehouse')}</th>
+                <th>{t('inv.with_workers')}</th>
+                <th>{t('inv.total')}</th>
+                <th>{t('inv.detail')}</th>
               </tr>
             </thead>
             <tbody>
@@ -135,14 +135,14 @@ export function InventoryPage() {
                     {p.sku && <div className="small muted">{p.sku}</div>}
                   </td>
                   <td>
-                    <Badge tone={p.warehouse_qty > 0 ? 'success' : 'gray'}>{p.warehouse_qty} шт.</Badge>
+                    <Badge tone={p.warehouse_qty > 0 ? 'success' : 'gray'}>{p.warehouse_qty} {t('common.pieces')}</Badge>
                   </td>
                   <td>
                     <Badge tone={p.workers.length > 0 ? 'info' : 'gray'}>
-                      {p.workers.reduce((s, w) => s + w.quantity, 0)} шт. · {p.workers.length} раб.
+                      {p.workers.reduce((s, w) => s + w.quantity, 0)} {t('common.pieces')} · {p.workers.length} {t('common.workers_short')}
                     </Badge>
                   </td>
-                  <td><strong>{p.total} шт.</strong></td>
+                  <td><strong>{p.total} {t('common.pieces')}</strong></td>
                   <td>
                     {p.workers.length === 0 ? (
                       <span className="muted">—</span>
@@ -164,103 +164,103 @@ export function InventoryPage() {
       )}
 
       {/* Приход */}
-      <Modal open={!!restockModal} title="Omborga tovar kirimi" onClose={() => setRestockModal(null)}>
+      <Modal open={!!restockModal} title={t('inv.restock')} onClose={() => setRestockModal(null)}>
         <form onSubmit={doRestock} className="form-grid">
-          <Field label="Ehtiyot qism" required>
+          <Field label={t('inv.part')} required>
             <select name="part_id" className="input select" required>
-              <option value="">— tanlang —</option>
+              <option value="">{t('common.select')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>
               ))}
             </select>
           </Field>
-          <Field label="Kutilgan miqdor" required>
+          <Field label={t('inv.expected_qty')} required>
             <input name="expected_quantity" type="number" min="1" className="input" defaultValue={1} required />
           </Field>
-          <Field label="Haqiqiy kelgan miqdor" required hint="Agar kam kelsa, qarz hisobga olinadi">
+          <Field label={t('inv.actual_qty')} required hint={t('inv.shortage_hint')}>
             <input name="actual_quantity" type="number" min="1" className="input" defaultValue={1} required />
           </Field>
-          <Field label="Sotib olish narxi (summa)">
+          <Field label={t('inv.purchase_cost')}>
             <input name="purchase_cost" type="number" min="0" className="input" placeholder="0" />
           </Field>
-          <Field label="Izoh" hint="Masalan, Xitoydan kelgan yetkazib berish raqami">
-            <input name="reason" className="input" placeholder="Yetkazib berish №…" />
+          <Field label={t('inv.reason')} hint={t('inv.reason_hint')}>
+            <input name="reason" className="input" placeholder={t('inv.delivery_placeholder')} />
           </Field>
           <div className="form-actions">
-            <Button type="button" variant="ghost" onClick={() => setRestockModal(null)}>Bekor qilish</Button>
-            <Button type="submit">Omborga qabul qilish</Button>
+            <Button type="button" variant="ghost" onClick={() => setRestockModal(null)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('inv.accept')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Распределение */}
-      <Modal open={!!assignModal} title="Распределить товар рабочему" onClose={() => setAssignModal(null)}>
+      <Modal open={!!assignModal} title={t('inv.assign_title')} onClose={() => setAssignModal(null)}>
         <form onSubmit={doAssign} className="form-grid">
-          <Field label="Запчасть" required>
+          <Field label={t('inv.part')} required>
             <select name="part_id" className="input select" required>
-              <option value="">— выберите —</option>
+              <option value="">{t('common.select')}</option>
               {parts.map((p) => (
-                <option key={p.id} value={p.id}>{p.name} (на складе: {p.warehouse_qty})</option>
+                <option key={p.id} value={p.id}>{p.name} ({t('common.in_warehouse')}: {p.warehouse_qty})</option>
               ))}
             </select>
           </Field>
-          <Field label="Рабочий" required>
+          <Field label={t('inv.worker')} required>
             <select name="to_worker_id" className="input select" required>
-              <option value="">— выберите —</option>
+              <option value="">{t('common.select')}</option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
               ))}
             </select>
           </Field>
-          <Field label="Количество" required>
+          <Field label={t('common.quantity')} required>
             <input name="quantity" type="number" min="1" className="input" defaultValue={1} required />
           </Field>
-          <Field label="Примечание">
-            <input name="reason" className="input" placeholder="Необязательно" />
+          <Field label={t('inv.reason')}>
+            <input name="reason" className="input" placeholder={t('common.optional')} />
           </Field>
           <div className="form-actions">
-            <Button type="button" variant="ghost" onClick={() => setAssignModal(null)}>Отмена</Button>
-            <Button type="submit">Распределить</Button>
+            <Button type="button" variant="ghost" onClick={() => setAssignModal(null)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('inv.assign_btn')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Между рабочими */}
-      <Modal open={!!transferModal} title="Передача между рабочими" onClose={() => setTransferModal(null)}>
+      <Modal open={!!transferModal} title={t('inv.worker_transfer')} onClose={() => setTransferModal(null)}>
         <form onSubmit={doTransfer} className="form-grid">
-          <Field label="Запчасть" required>
+          <Field label={t('inv.part')} required>
             <select name="part_id" className="input select" required>
-              <option value="">— выберите —</option>
+              <option value="">{t('common.select')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
           </Field>
-          <Field label="От рабочего" required>
+          <Field label={t('inv.from_worker')} required>
             <select name="from_worker_id" className="input select" required>
-              <option value="">— выберите —</option>
+              <option value="">{t('common.select')}</option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
               ))}
             </select>
           </Field>
-          <Field label="Кому" required>
+          <Field label={t('inv.to_worker')} required>
             <select name="to_worker_id" className="input select" required>
-              <option value="">— выберите —</option>
+              <option value="">{t('common.select')}</option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
               ))}
             </select>
           </Field>
-          <Field label="Количество" required>
+          <Field label={t('common.quantity')} required>
             <input name="quantity" type="number" min="1" className="input" defaultValue={1} required />
           </Field>
-          <Field label="Примечание">
-            <input name="reason" className="input" placeholder="Необязательно" />
+          <Field label={t('inv.reason')}>
+            <input name="reason" className="input" placeholder={t('common.optional')} />
           </Field>
           <div className="form-actions">
-            <Button type="button" variant="ghost" onClick={() => setTransferModal(null)}>Отмена</Button>
-            <Button type="submit">Передать</Button>
+            <Button type="button" variant="ghost" onClick={() => setTransferModal(null)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('inv.transfer_btn')}</Button>
           </div>
         </form>
       </Modal>

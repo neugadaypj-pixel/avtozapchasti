@@ -30,10 +30,10 @@ export function WorkersPage() {
     try {
       if (form.mode === 'create') {
         await API.users.create(body);
-        toast('Рабочий добавлен', 'success');
+        toast(t('workers.added'), 'success');
       } else {
         await API.users.update(form.worker.id, body);
-        toast('Данные обновлены', 'success');
+        toast(t('workers.updated'), 'success');
       }
       setForm(null);
       load();
@@ -45,7 +45,7 @@ export function WorkersPage() {
   async function toggleActive(w) {
     try {
       await API.users.update(w.id, { is_active: w.is_active ? 0 : 1 });
-      toast(w.is_active ? 'Аккаунт заблокирован' : 'Аккаунт разблокирован', 'success');
+      toast(w.is_active ? t('workers.blocked') : t('workers.unblocked'), 'success');
       load();
     } catch (e) {
       toast(e.message, 'error');
@@ -53,10 +53,10 @@ export function WorkersPage() {
   }
 
   async function remove(w) {
-    if (!confirm(`Удалить рабочего «${w.full_name}»?`)) return;
+    if (!confirm(`${t('workers.delete_confirm')} «${w.full_name}»?`)) return;
     try {
       await API.users.remove(w.id);
-      toast('Рабочий удалён', 'success');
+      toast(t('workers.deleted'), 'success');
       load();
     } catch (e) {
       toast(e.message, 'error');

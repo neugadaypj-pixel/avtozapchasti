@@ -129,19 +129,19 @@ export function Layout({ current, onNavigate, children }) {
 
       <div className="main">
         <header className="topbar">
-          <button className="icon-btn burger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menyu">
+          <button className="icon-btn burger" onClick={() => setMenuOpen(!menuOpen)} aria-label={t('nav.menu')}>
             <Icon name="menu" size={20} />
           </button>
           <div className="topbar-title">{nav.find((n) => n.id === current)?.label || ''}</div>
           <div className="topbar-spacer" />
 
-          <button className="icon-btn" onClick={toggleLang} title="Til">
+          <button className="icon-btn" onClick={toggleLang} title={t('nav.language')}>
             <span style={{ fontSize: 13, fontWeight: 600 }}>{lang === 'uz' ? 'RU' : 'UZ'}</span>
           </button>
 
           {!isAdmin && (
             <div className="notif-wrap" ref={notifRef}>
-              <button className="icon-btn" onClick={openNotifs} aria-label="Bildirishnomalar">
+              <button className="icon-btn" onClick={openNotifs} aria-label={t('nav.notifications')}>
                 <Icon name="alert" size={20} />
                 {unread > 0 && <span className="notif-badge">{unread}</span>}
               </button>
