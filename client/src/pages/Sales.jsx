@@ -111,6 +111,12 @@ export function SalesPage() {
     return hours <= 24;
   }
 
+  function daysPending(s) {
+    if (s.payment_status === 'paid') return null;
+    const days = Math.floor((new Date() - new Date(s.created_at)) / (1000 * 60 * 60 * 24));
+    return days;
+  }
+
   return (
     <div className="page">
       <div className="page-head">
@@ -164,6 +170,7 @@ export function SalesPage() {
                       {t(`sale.${PAYMENT_LABELS[s.payment_type] || 'cash'}`)}
                       {' · '}
                       {s.payment_status === 'paid' ? t('pay.paid') : t('pay.pending')}
+                      {daysPending(s) > 0 && ` · ${daysPending(s)}d`}
                     </Badge>
                   </td>
                   <td className="text-right">

@@ -362,7 +362,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .topbar-name { font-size: 13px; font-weight: 500; }
 .topbar-role { font-size: 11px; color: var(--muted); }
 
-.content { padding: 28px; flex: 1; }
+.content { padding: 28px; flex: 1; max-width: 1280px; margin: 0 auto; width: 100%; }
 
 .overlay { display: none; }
 
@@ -376,7 +376,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
-.page-head h2 { font-size: 24px; font-weight: 700; }
+.page-head h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
 .page-head .muted { font-size: 13px; margin-top: 4px; }
 
 /* ---------- Статистика ---------- */
@@ -450,7 +450,9 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   overflow: hidden;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  transition: box-shadow 0.15s;
 }
+.table-wrap:hover { box-shadow: var(--shadow-md); }
 .table-wrap .table { min-width: 640px; }
 .table { width: 100%; border-collapse: collapse; }
 .table th {
