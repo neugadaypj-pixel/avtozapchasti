@@ -22,6 +22,7 @@ export function Layout({ current, onNavigate, children }) {
     { id: 'transfers', label: t('nav.transfers'), icon: 'transfers' },
     { id: 'categories', label: t('nav.categories'), icon: 'categories' },
     { id: 'money', label: t('nav.money'), icon: 'money' },
+    { id: 'stats', label: t('stats.title'), icon: 'sales' },
     { id: 'audit', label: t('nav.audit'), icon: 'edit' },
   ];
 

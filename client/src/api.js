@@ -104,5 +104,8 @@ export const API = {
     list: () => api('/notifications'),
     read: (ids) => api('/notifications/read', { method: 'POST', body: { ids } }),
   },
+  stats: {
+    list: () => api('/stats'),
+  },
   dashboard: () => api('/dashboard'),
 };
