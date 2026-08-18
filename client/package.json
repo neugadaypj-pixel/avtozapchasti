@@ -43,6 +43,7 @@
       "target": "nsis",
       "icon": "public/icon.ico"
     },
+    "compression": "normal",
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
