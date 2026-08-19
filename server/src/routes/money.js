@@ -90,7 +90,7 @@ router.get('/turnover', async (req, res) => {
     .filter((s) => s.payment_status === 'pending')
     .reduce((sum, s) => sum + s.total, 0);
 
-  // Бонусы за счёт компании не включаются в долг.
+  // Все расходы рабочего учитываются за счёт компании.
   const bonusTotal = workerExpenses
     .filter((e) => e.type === 'bonus')
     .reduce((sum, e) => sum + e.amount, 0);
@@ -103,8 +103,10 @@ router.get('/turnover', async (req, res) => {
     .filter((e) => e.type === 'other')
     .reduce((sum, e) => sum + e.amount, 0);
 
-  // Долг = наличные (должен отдать) - бонусы (за счёт компании).
-  const debtToAdmin = cashPaid - bonusTotal;
+  const totalExpenses = workerExpenses.reduce((s, e) => s + e.amount, 0);
+
+  // Долг = наличные (должен отдать) - ВСЕ расходы (за счёт компании).
+  const debtToAdmin = cashPaid - totalExpenses;
 
   const result = {
     worker_id: scopeWorkerId,
@@ -145,10 +147,11 @@ async function allTurnover(sales, expenses) {
     const paidSales = ws.filter((s) => s.payment_status === 'paid');
     const cashPaid = paidSales.filter((s) => s.payment_type === 'cash').reduce((sum, s) => sum + s.total, 0);
     const bonusTotal = we.filter((e) => e.type === 'bonus').reduce((sum, e) => sum + e.amount, 0);
+    const totalExpenses = we.reduce((s, e) => s + e.amount, 0);
     const revenue = paidSales.reduce((sum, s) => sum + s.total, 0);
     const cogs = costOfGoods(paidSales);
     // Чистая прибыль = выручка(оплаченная) - себестоимость - расходы рабочего.
-    const profit = revenue - cogs - we.reduce((s, e) => s + e.amount, 0);
+    const profit = revenue - cogs - totalExpenses;
 
     return {
       worker_id: w.id,
@@ -159,11 +162,11 @@ async function allTurnover(sales, expenses) {
       card_paid: paidSales.filter((s) => s.payment_type === 'card').reduce((sum, s) => sum + s.total, 0),
       bank_paid: paidSales.filter((s) => s.payment_type === 'bank').reduce((sum, s) => sum + s.total, 0),
       pending: ws.filter((s) => s.payment_status === 'pending').reduce((sum, s) => sum + s.total, 0),
-      expenses_total: we.reduce((s, e) => s + e.amount, 0),
+      expenses_total: totalExpenses,
       bonus_total: bonusTotal,
       rent_total: we.filter((e) => e.type === 'rent').reduce((sum, e) => sum + e.amount, 0),
       other_total: we.filter((e) => e.type === 'other').reduce((sum, e) => sum + e.amount, 0),
-      debt_to_admin: cashPaid - bonusTotal,
+      debt_to_admin: cashPaid - totalExpenses,
       revenue,
       cogs,
       profit,
