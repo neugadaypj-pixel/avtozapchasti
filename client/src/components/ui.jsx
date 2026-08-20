@@ -101,10 +101,10 @@ export function Select({ value, onChange, defaultValue, children, placeholder, c
     function onKey(e) {
       if (e.key === 'Escape') setOpen(false);
     }
-    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('pointerdown', onDoc);
     document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('pointerdown', onDoc);
       document.removeEventListener('keydown', onKey);
     };
   }, []);
@@ -148,7 +148,10 @@ export function Select({ value, onChange, defaultValue, children, placeholder, c
                 className={`select-custom-option ${active ? 'is-active' : ''}`}
                 role="option"
                 aria-selected={active}
-                onClick={() => choose(o.props.value)}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  choose(o.props.value);
+                }}
               >
                 {o.props.children}
               </div>
