@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast, useConfirm } from '../components/ui.jsx';
 
 export function PartsPage({ onNavigate }) {
   const { isAdmin } = useAuth();
   const { t } = useI18n();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [parts, setParts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -74,7 +75,7 @@ export function PartsPage({ onNavigate }) {
   }
 
   async function removePart(id) {
-    if (!confirm(t('parts.delete_confirm'))) return;
+    if (!(await confirm({ message: t('parts.delete_confirm'), danger: true }))) return;
     try {
       await API.parts.remove(id);
       toast(t('parts.deleted'), 'success');
@@ -330,6 +331,7 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
 
 function PartForm({ part, categories, onSave, onCancel }) {
   const { t } = useI18n();
+  const confirm = useConfirm();
   const [name, setName] = useState(part?.name || '');
   const [sku, setSku] = useState(part?.sku || '');
   const [brand, setBrand] = useState(part?.brand || '');
@@ -349,7 +351,7 @@ function PartForm({ part, categories, onSave, onCancel }) {
       const r = await API.uploads.image(file);
       setImageUrl(r.data.url);
     } catch (err) {
-      alert(t('parts.upload_error') + ' ' + err.message);
+      await confirm({ message: t('parts.upload_error') + ' ' + err.message });
     } finally {
       setUploading(false);
     }

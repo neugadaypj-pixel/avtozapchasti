@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, useToast } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, useToast, useConfirm } from '../components/ui.jsx';
 
 export function CategoriesPage() {
   const { t } = useI18n();
   const toast = useToast();
+  const confirm = useConfirm();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -36,7 +37,7 @@ export function CategoriesPage() {
   }
 
   async function remove(cat) {
-    if (!confirm(`${t('cat.delete_confirm')} «${cat.name}»? ${t('cat.delete_hint')}`)) return;
+    if (!(await confirm({ message: `${t('cat.delete_confirm')} «${cat.name}»? ${t('cat.delete_hint')}`, danger: true }))) return;
     try {
       await API.categories.remove(cat.id);
       toast(t('cat.deleted'), 'success');

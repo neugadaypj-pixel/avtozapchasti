@@ -117,6 +117,56 @@ export function Modal({ open, title, onClose, children, footer, wide }) {
   );
 }
 
+/* ---------- Диалог подтверждения ---------- */
+const ConfirmContext = createContext(null);
+
+export function ConfirmProvider({ children }) {
+  const { t } = useI18n();
+  const [dialog, setDialog] = useState(null);
+
+  const confirm = useCallback((options) => {
+    return new Promise((resolve) => {
+      setDialog((prev) => {
+        if (prev) prev.resolve(false);
+        const opts = typeof options === 'string' ? { message: options } : options;
+        return { ...opts, resolve };
+      });
+    });
+  }, []);
+
+  function close(result) {
+    setDialog((prev) => {
+      if (prev) prev.resolve(result);
+      return null;
+    });
+  }
+
+  const confirmText = dialog?.confirmText || (dialog?.danger ? t('common.delete') : t('common.yes'));
+
+  return (
+    <ConfirmContext.Provider value={confirm}>
+      {children}
+      <Modal
+        open={!!dialog}
+        title={dialog?.title || t('common.confirm')}
+        onClose={() => close(false)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => close(false)}>{dialog?.cancelText || t('common.cancel')}</Button>
+            <Button variant={dialog?.danger ? 'danger' : 'primary'} onClick={() => close(true)}>{confirmText}</Button>
+          </>
+        }
+      >
+        <p className="confirm-message">{dialog?.message}</p>
+      </Modal>
+    </ConfirmContext.Provider>
+  );
+}
+
+export function useConfirm() {
+  return useContext(ConfirmContext);
+}
+
 /* ---------- Бейдж ---------- */
 export function Badge({ children, tone = 'gray' }) {
   return <span className={`badge badge-${tone}`}>{children}</span>;

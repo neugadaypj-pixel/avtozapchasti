@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast, useConfirm } from '../components/ui.jsx';
 
 function expenseLabels(t) {
   return {
@@ -16,6 +16,7 @@ export function MoneyPage() {
   const { user, isAdmin } = useAuth();
   const { t } = useI18n();
   const toast = useToast();
+  const confirm = useConfirm();
   const [turnover, setTurnover] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [sales, setSales] = useState([]);
@@ -67,7 +68,7 @@ export function MoneyPage() {
   }
 
   async function confirmPayment(saleId) {
-    if (!confirm(t('money.confirm_payment_q'))) return;
+    if (!(await confirm(t('money.confirm_payment_q')))) return;
     try {
       await API.sales.confirm(saleId);
       toast(t('money.payment_confirmed'), 'success');

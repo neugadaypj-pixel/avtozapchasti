@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Empty, Spinner, Badge, fmtMoney, fmtDate, Button, Modal, Field, useToast } from '../components/ui.jsx';
+import { Empty, Spinner, Badge, fmtMoney, fmtDate, Button, Modal, Field, useToast, useConfirm } from '../components/ui.jsx';
 
 const PAYMENT_LABELS = {
   cash: 'cash',
@@ -14,6 +14,7 @@ export function SalesPage() {
   const { isAdmin } = useAuth();
   const { t } = useI18n();
   const toast = useToast();
+  const confirm = useConfirm();
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -35,7 +36,7 @@ export function SalesPage() {
   useEffect(() => { load(); }, []);
 
   async function confirmPayment(id) {
-    if (!confirm(t('sales.confirm') + '?')) return;
+    if (!(await confirm(t('sales.confirm') + '?'))) return;
     try {
       await API.sales.confirm(id);
       toast(t('pay.paid'), 'success');

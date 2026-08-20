@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Empty, Spinner, Badge, fmtDate, useToast } from '../components/ui.jsx';
+import { Button, Empty, Spinner, Badge, fmtDate, useToast, useConfirm } from '../components/ui.jsx';
 
 const typeTones = {
   assign: 'info',
@@ -14,6 +14,7 @@ export function TransfersPage() {
   const { isAdmin, user } = useAuth();
   const { t } = useI18n();
   const toast = useToast();
+  const confirm = useConfirm();
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,7 +35,7 @@ export function TransfersPage() {
   useEffect(() => { load(); }, []);
 
   async function confirmReceipt(id) {
-    if (!confirm(t('transfer.confirm_receipt') + '?')) return;
+    if (!(await confirm(t('transfer.confirm_receipt') + '?'))) return;
     try {
       await API.transfers.confirm(id);
       toast(t('transfer.received'), 'success');

@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, useToast } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, useToast, useConfirm } from '../components/ui.jsx';
 
 export function WorkersPage() {
   const { user } = useAuth();
   const { t } = useI18n();
   const toast = useToast();
+  const confirm = useConfirm();
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null); // { mode, worker }
@@ -53,7 +54,7 @@ export function WorkersPage() {
   }
 
   async function remove(w) {
-    if (!confirm(`${t('workers.delete_confirm')} «${w.full_name}»?`)) return;
+    if (!(await confirm({ message: `${t('workers.delete_confirm')} «${w.full_name}»?`, danger: true }))) return;
     try {
       await API.users.remove(w.id);
       toast(t('workers.deleted'), 'success');

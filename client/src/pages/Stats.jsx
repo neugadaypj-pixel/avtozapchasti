@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useI18n } from '../i18n.jsx';
-import { StatCard, Empty, Spinner, Badge, fmtMoney, useToast, Button } from '../components/ui.jsx';
+import { StatCard, Empty, Spinner, Badge, fmtMoney, useToast, Button, useConfirm } from '../components/ui.jsx';
 
 export function StatsPage() {
   const { t } = useI18n();
   const toast = useToast();
+  const confirm = useConfirm();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,7 +28,7 @@ export function StatsPage() {
 
   async function autoOrder() {
     if (!data || data.low_stock.length === 0) return;
-    if (!confirm(t('stats.auto_order') + '?')) return;
+    if (!(await confirm(t('stats.auto_order') + '?'))) return;
     try {
       const items = data.low_stock.map((p) => ({
         part_id: p.part_id,
