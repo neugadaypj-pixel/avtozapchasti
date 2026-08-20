@@ -27,8 +27,9 @@ router.get('/', async (req, res) => {
   for (const r of inventory) invByPart[r.part_id] = (invByPart[r.part_id] || 0) + r.quantity;
   const lowStockCount = parts.filter((p) => (invByPart[p.id] || 0) <= 3).length;
 
-  const salesToday = sales.filter((s) => new Date(s.created_at) >= startOfDay);
-  const salesMonth = sales.filter((s) => new Date(s.created_at) >= startOfMonth);
+  const ownSales = isAdmin ? sales : sales.filter((s) => s.worker_id === req.user.id);
+  const salesToday = ownSales.filter((s) => new Date(s.created_at) >= startOfDay);
+  const salesMonth = ownSales.filter((s) => new Date(s.created_at) >= startOfMonth);
 
   const stats = {
     total_parts: parts.length,
