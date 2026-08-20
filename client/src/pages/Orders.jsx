@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast, Select } from '../components/ui.jsx';
 
 export function OrdersPage() {
   const { isAdmin } = useAuth();
@@ -236,18 +236,18 @@ function NewOrderForm({ parts, t, onCancel, onSubmit }) {
         <div className="card-head"><h4>{t('orders.items')}</h4><Button type="button" variant="secondary" size="sm" onClick={addItem}>+ {t('orders.add_item')}</Button></div>
         {items.map((it, idx) => (
           <div className="order-item-row" key={idx}>
-            <select
-              className="input select"
+            <Select
               name={`part_id_${idx}`}
               value={it.part_id}
               onChange={(e) => updateItem(idx, 'part_id', e.target.value)}
+              placeholder={t('orders.select_part')}
               required
             >
               <option value="">{t('orders.select_part')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>
               ))}
-            </select>
+            </Select>
             <input
               className="input"
               type="number"

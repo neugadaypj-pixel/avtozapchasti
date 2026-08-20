@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Empty, Spinner, Badge, fmtMoney, fmtDate, Button, Modal, Field, useToast, useConfirm } from '../components/ui.jsx';
+import { Empty, Spinner, Badge, fmtMoney, fmtDate, Button, Modal, Field, useToast, useConfirm, Select } from '../components/ui.jsx';
 
 const PAYMENT_LABELS = {
   cash: 'cash',
@@ -210,17 +210,17 @@ export function SalesPage() {
               <input name="note" className="input" defaultValue={editSale.note || ''} />
             </Field>
             <Field label={t('sale.payment_type')} required>
-              <select name="payment_type" className="input select" defaultValue={editSale.payment_type} required>
+              <Select name="payment_type" defaultValue={editSale.payment_type} required>
                 <option value="cash">{t('sale.cash')}</option>
                 <option value="card">{t('sale.card')}</option>
                 <option value="bank">{t('sale.bank')}</option>
-              </select>
+              </Select>
             </Field>
             <Field label={t('common.status')} required>
-              <select name="payment_status" className="input select" defaultValue={editSale.payment_status} required>
+              <Select name="payment_status" defaultValue={editSale.payment_status} required>
                 <option value="paid">{t('pay.paid')}</option>
                 <option value="pending">{t('pay.pending')}</option>
-              </select>
+              </Select>
             </Field>
             <div className="form-actions">
               <Button type="button" variant="ghost" onClick={() => setEditSale(null)}>{t('common.cancel')}</Button>

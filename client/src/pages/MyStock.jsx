@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast, Select } from '../components/ui.jsx';
 
 export function MyStock({ onNavigate }) {
   const { user } = useAuth();
@@ -156,17 +156,17 @@ export function MyStock({ onNavigate }) {
               <input name="unit_price" type="number" min="0" className="input" defaultValue={sellModal.part.sell_price} />
             </Field>
             <Field label={t('sale.payment_type')} required>
-              <select name="payment_type" className="input select" required>
+              <Select name="payment_type" defaultValue="cash" required>
                 <option value="cash">{t('sale.cash')}</option>
                 <option value="card">{t('sale.card')}</option>
                 <option value="bank">{t('sale.bank')}</option>
-              </select>
+              </Select>
             </Field>
             <Field label={t('sale.payment_when')} required>
-              <select name="payment_status" className="input select" required>
+              <Select name="payment_status" defaultValue="paid" required>
                 <option value="paid">{t('sale.paid_now')}</option>
                 <option value="pending">{t('sale.paid_later')}</option>
-              </select>
+              </Select>
             </Field>
             <Field label={t('sale.client')}>
               <input name="client_name" className="input" placeholder={t('sale.client_placeholder')} />

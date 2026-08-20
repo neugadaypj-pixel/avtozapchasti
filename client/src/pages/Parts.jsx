@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast, useConfirm } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, fmtMoney, useToast, useConfirm, Select } from '../components/ui.jsx';
 
 export function PartsPage({ onNavigate }) {
   const { isAdmin } = useAuth();
@@ -111,18 +111,18 @@ export function PartsPage({ onNavigate }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select className="input select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+        <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} placeholder={t('parts.all_categories')}>
           <option value="">{t('parts.all_categories')}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
-        </select>
-        <select className="input select" value={brand} onChange={(e) => setBrand(e.target.value)}>
+        </Select>
+        <Select value={brand} onChange={(e) => setBrand(e.target.value)} placeholder={t('parts.all_brands')}>
           <option value="">{t('parts.all_brands')}</option>
           {brandOptions.map((b) => (
             <option key={b} value={b}>{b}</option>
           ))}
-        </select>
+        </Select>
         {isAdmin && (
           <label className="check">
             <input type="checkbox" checked={lowStock} onChange={(e) => setLowStock(e.target.checked)} />
@@ -291,17 +291,17 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
               <input name="unit_price" type="number" min="0" className="input" defaultValue={part.sell_price} />
             </Field>
             <Field label={t('sale.payment_type')} required>
-              <select name="payment_type" className="input select" required>
+              <Select name="payment_type" defaultValue="cash" required>
                 <option value="cash">{t('sale.cash')}</option>
                 <option value="card">{t('sale.card')}</option>
                 <option value="bank">{t('sale.bank')}</option>
-              </select>
+              </Select>
             </Field>
             <Field label={t('sale.payment_when')} required>
-              <select name="payment_status" className="input select" required>
+              <Select name="payment_status" defaultValue="paid" required>
                 <option value="paid">{t('sale.paid_now')}</option>
                 <option value="pending">{t('sale.paid_later')}</option>
-              </select>
+              </Select>
             </Field>
             <Field label={t('sale.client')}>
               <input name="client_name" className="input" placeholder={t('sale.client_placeholder')} />
@@ -379,12 +379,12 @@ function PartForm({ part, categories, onSave, onCancel }) {
         <input className="input" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Toyota" />
       </Field>
       <Field label={t('parts.category')}>
-        <select className="input select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+        <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} placeholder={t('parts.no_category')}>
           <option value="">{t('parts.no_category')}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
-        </select>
+        </Select>
       </Field>
       <Field label={t('parts.cost_price')}>
         <input className="input" type="number" min="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} placeholder="0" />

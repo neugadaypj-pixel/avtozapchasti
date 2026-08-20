@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast, useConfirm } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast, useConfirm, Select } from '../components/ui.jsx';
 
 function expenseLabels(t) {
   return {
@@ -99,12 +99,12 @@ export function MoneyPage() {
 
       {isAdmin && (
         <div className="filter-bar">
-          <select className="input select" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
+          <Select value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)} placeholder={t('common.all')}>
             <option value="">{t('common.all')}</option>
             {workers.map((w) => (
               <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
             ))}
-          </select>
+          </Select>
         </div>
       )}
 
@@ -198,11 +198,11 @@ export function MoneyPage() {
             <input name="amount" type="number" min="1" className="input" required />
           </Field>
           <Field label={t('money.type')} required>
-            <select name="type" className="input select" required>
+            <Select name="type" defaultValue="rent" required>
               <option value="rent">{t('money.rent')}</option>
               <option value="bonus">{t('money.bonus')}</option>
               <option value="other">{t('money.other')}</option>
-            </select>
+            </Select>
           </Field>
           <Field label={t('money.description')} hint={t('common.optional')}>
             <input name="description" className="input" placeholder={t('money.description')} />

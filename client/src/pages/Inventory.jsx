@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
 import { useI18n } from '../i18n.jsx';
-import { Button, Field, Modal, Empty, Spinner, Badge, useToast } from '../components/ui.jsx';
+import { Button, Field, Modal, Empty, Spinner, Badge, useToast, Select } from '../components/ui.jsx';
 
 export function InventoryPage() {
   const { t } = useI18n();
@@ -167,12 +167,12 @@ export function InventoryPage() {
       <Modal open={!!restockModal} title={t('inv.restock')} onClose={() => setRestockModal(null)}>
         <form onSubmit={doRestock} className="form-grid">
           <Field label={t('inv.part')} required>
-            <select name="part_id" className="input select" required>
+            <Select name="part_id" placeholder={t('common.select')} required>
               <option value="">{t('common.select')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('inv.expected_qty')} required>
             <input name="expected_quantity" type="number" min="1" className="input" defaultValue={1} required />
@@ -197,20 +197,20 @@ export function InventoryPage() {
       <Modal open={!!assignModal} title={t('inv.assign_title')} onClose={() => setAssignModal(null)}>
         <form onSubmit={doAssign} className="form-grid">
           <Field label={t('inv.part')} required>
-            <select name="part_id" className="input select" required>
+            <Select name="part_id" placeholder={t('common.select')} required>
               <option value="">{t('common.select')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} ({t('common.in_warehouse')}: {p.warehouse_qty})</option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('inv.worker')} required>
-            <select name="to_worker_id" className="input select" required>
+            <Select name="to_worker_id" placeholder={t('common.select')} required>
               <option value="">{t('common.select')}</option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('common.quantity')} required>
             <input name="quantity" type="number" min="1" className="input" defaultValue={1} required />
@@ -229,28 +229,28 @@ export function InventoryPage() {
       <Modal open={!!transferModal} title={t('inv.worker_transfer')} onClose={() => setTransferModal(null)}>
         <form onSubmit={doTransfer} className="form-grid">
           <Field label={t('inv.part')} required>
-            <select name="part_id" className="input select" required>
+            <Select name="part_id" placeholder={t('common.select')} required>
               <option value="">{t('common.select')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('inv.from_worker')} required>
-            <select name="from_worker_id" className="input select" required>
+            <Select name="from_worker_id" placeholder={t('common.select')} required>
               <option value="">{t('common.select')}</option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('inv.to_worker')} required>
-            <select name="to_worker_id" className="input select" required>
+            <Select name="to_worker_id" placeholder={t('common.select')} required>
               <option value="">{t('common.select')}</option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('common.quantity')} required>
             <input name="quantity" type="number" min="1" className="input" defaultValue={1} required />

@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n.jsx';
 
 /* ---------- Иконки (минималистичные SVG) ---------- */
@@ -73,6 +73,95 @@ export function Button({ children, variant = 'primary', size, type = 'button', .
     <button type={type} className={cls.join(' ')} {...props}>
       {children}
     </button>
+  );
+}
+
+/* ---------- Современный выпадающий список ---------- */
+export function Select({ value, onChange, defaultValue, children, placeholder, className = '', required, name }) {
+  const isControlled = value !== undefined;
+  const [internal, setInternal] = useState(value ?? defaultValue ?? '');
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const nativeRef = useRef(null);
+
+  // Синхронизация с внешним контролируемым значением.
+  useEffect(() => {
+    if (isControlled) setInternal(value);
+  }, [value, isControlled]);
+
+  // Держим скрытый native select в актуальном состоянии для FormData.
+  useEffect(() => {
+    if (nativeRef.current) nativeRef.current.value = internal;
+  }, [internal]);
+
+  useEffect(() => {
+    function onDoc(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
+  const options = React.Children.toArray(children).filter(
+    (c) => React.isValidElement(c) && c.type === 'option'
+  );
+
+  const selected = options.find((o) => String(o.props.value) === String(internal));
+  const label = selected ? selected.props.children : (placeholder || '');
+
+  function choose(optValue) {
+    setInternal(optValue);
+    if (onChange) onChange({ target: { value: optValue, name } });
+    setOpen(false);
+  }
+
+  return (
+    <div className={`select-custom ${className}`} ref={rootRef}>
+      <button
+        type="button"
+        className={`select-custom-trigger ${open ? 'is-open' : ''} ${!selected ? 'is-placeholder' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className="select-custom-value">{label}</span>
+        <svg className="select-custom-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="select-custom-menu" role="listbox">
+          {options.map((o) => {
+            const optValue = String(o.props.value);
+            const active = optValue === String(internal);
+            return (
+              <div
+                key={o.key ?? optValue}
+                className={`select-custom-option ${active ? 'is-active' : ''}`}
+                role="option"
+                aria-selected={active}
+                onClick={() => choose(o.props.value)}
+              >
+                {o.props.children}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Скрытый native select для совместимости с FormData (name/required) */}
+      <select ref={nativeRef} className="select-custom-native" name={name} defaultValue={internal} required={required} tabIndex={-1} aria-hidden="true">
+        {children}
+      </select>
+    </div>
   );
 }
 
