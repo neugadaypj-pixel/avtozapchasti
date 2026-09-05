@@ -80,6 +80,7 @@ app.use('/api/notifications', auth, require('./routes/notifications'));
 app.use('/api/orders', auth, require('./routes/orders'));
 app.use('/api/stats', auth, require('./routes/stats'));
 app.use('/api/admin', auth, require('./routes/admin'));
+app.use('/api/import', auth, require('./routes/import'));
 
 // Раздача собранного фронтенда (client/dist), если он собран.
 // Для продакшена Render собирает фронт и отдаёт его этим же сервером.

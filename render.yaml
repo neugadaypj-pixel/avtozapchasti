@@ -28,3 +28,7 @@ services:
         value: avtozapchasti
       - key: R2_PUBLIC_URL
         sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DEEPSEEK_MODEL
+        value: deepseek-v4-flash

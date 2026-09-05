@@ -95,6 +95,14 @@ export const API = {
   admin: {
     clearData: () => api('/admin/clear-data', { method: 'POST' }),
   },
+  import: {
+    analyze: (file) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return api('/import/analyze', { method: 'POST', body: fd });
+    },
+    confirm: (parts) => api('/import/confirm', { method: 'POST', body: { parts } }),
+  },
   uploads: {
     image: (file) => {
       const fd = new FormData();

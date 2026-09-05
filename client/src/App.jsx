@@ -15,6 +15,7 @@ import { AuditLogPage } from './pages/AuditLog.jsx';
 import { MoneyPage } from './pages/Money.jsx';
 import { OrdersPage } from './pages/Orders.jsx';
 import { StatsPage } from './pages/Stats.jsx';
+import { ImportPage } from './pages/Import.jsx';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -60,6 +61,8 @@ export default function App() {
         return <OrdersPage />;
       case 'stats':
         return isAdmin ? <StatsPage /> : <Dashboard onNavigate={setPage} />;
+      case 'import':
+        return isAdmin ? <ImportPage onNavigate={setPage} /> : <Dashboard onNavigate={setPage} />;
       default:
         return <Dashboard onNavigate={setPage} />;
     }

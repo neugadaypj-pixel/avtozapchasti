@@ -17,6 +17,7 @@ export function Layout({ current, onNavigate, children }) {
     { id: 'inventory', label: t('nav.inventory'), icon: 'warehouse' },
     { id: 'orders', label: t('orders.title'), icon: 'transfers' },
     { id: 'parts', label: t('nav.parts'), icon: 'parts' },
+    { id: 'import', label: t('import.title'), icon: 'transfers' },
     { id: 'workers', label: t('nav.workers'), icon: 'workers' },
     { id: 'sales', label: t('nav.sales'), icon: 'sales' },
     { id: 'transfers', label: t('nav.transfers'), icon: 'transfers' },

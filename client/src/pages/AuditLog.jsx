@@ -35,6 +35,7 @@ export function AuditLogPage() {
     confirm_payment: t('audit.confirm_payment'),
     debt_payment: t('audit.debt_payment'),
     clear_data: t('audit.clear_data'),
+    import: t('audit.import'),
   };
 
   const actionTones = {
@@ -42,6 +43,7 @@ export function AuditLogPage() {
     sell: 'success', assign: 'info', return: 'warn', restock: 'success',
     'worker-transfer': 'info', order_create: 'info', order_confirm: 'success',
     expense: 'warn', confirm_payment: 'success', debt_payment: 'success', clear_data: 'danger',
+    import: 'info',
   };
 
   const entityLabels = {
