@@ -99,6 +99,8 @@ router.post('/confirm', async (req, res) => {
         category_id: p.category_id ? Number(p.category_id) : null,
         cost_price: Number(p.cost_price) || 0,
         sell_price: Number(p.sell_price) || 0,
+        cost_currency: p.cost_currency || 'UZS',
+        sell_currency: p.sell_currency || 'UZS',
         description: p.description ? String(p.description).trim() : null,
         shelf: p.shelf ? String(p.shelf).trim() : null,
         image_url: null,

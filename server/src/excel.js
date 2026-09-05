@@ -1,6 +1,7 @@
 // Детерминированный разбор Excel-строк в запчасти по заголовкам колонок.
 // Поддерживает русские, английские и узбекские заголовки.
-// Используется в первую очередь; если ничего не распознано — подключается ИИ.
+// Также определяет валюту цен (UZS / USD) из отдельной колонки "Валюта"
+// или из самого значения ячейки (например "96.131 USD", "350000 So'm").
 
 function norm(s) {
   return String(s ?? '')
@@ -74,6 +75,30 @@ function matchColumn(header) {
   return null;
 }
 
+// Является ли заголовок колонкой валюты.
+function isCurrencyHeader(header) {
+  const h = norm(header);
+  return /valyuta|валюта|валюта цены|currency|pul birligi|pul/.test(h);
+}
+
+// Определяем валюту из текста.
+function detectCurrency(value) {
+  const s = String(value ?? '');
+  if (/usd|\$|доллар|dollar/i.test(s)) return 'USD';
+  if (/som|so'm|сум|sum|uzs/i.test(s)) return 'UZS';
+  return null;
+}
+
+// Вычищаем валюту и прочий мусор, оставляя только число.
+function stripCurrency(value) {
+  return String(value ?? '')
+    .replace(/\$/g, '')
+    .replace(/usd|dollar|доллар/gi, '')
+    .replace(/so'm|som|сум|sum|uzs/gi, '')
+    .replace(/[^\d.,\-]/g, '')
+    .trim();
+}
+
 function looksLikeHeader(row) {
   if (!Array.isArray(row)) return false;
   let textCells = 0;
@@ -84,8 +109,15 @@ function looksLikeHeader(row) {
     if (/^[-+]?\d+([.,]\d+)?$/.test(s.replace(/\s/g, ''))) numericCells++;
     else textCells++;
   }
-  // Заголовок — преимущественно текст.
   return textCells > 0 && textCells >= numericCells;
+}
+
+function parseNumber(v) {
+  if (v === null || v === undefined) return 0;
+  const s = stripCurrency(v);
+  if (!s) return 0;
+  const parsed = parseFloat(s.replace(/\s/g, '').replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 // Разбирает сырые строки Excel в массив запчастей.
@@ -96,50 +128,39 @@ function parseRows(rows) {
   // 1. Ищем строку-заголовок среди первых 10 строк.
   let headerIndex = -1;
   let columnMap = null;
+  let currencyCols = []; // индексы колонок валюты
   for (let i = 0; i < Math.min(clean.length, 10); i++) {
     if (looksLikeHeader(clean[i])) {
       const map = {};
       let matched = 0;
+      const cur = [];
       clean[i].forEach((cell, idx) => {
         const key = matchColumn(cell);
         if (key && map[key] === undefined) {
           map[key] = idx;
           matched++;
         }
+        if (isCurrencyHeader(cell)) cur.push(idx);
       });
       if (matched >= 2) {
         headerIndex = i;
         columnMap = map;
+        currencyCols = cur;
         break;
       }
     }
   }
 
-  // Если заголовок не найден — пробуем позиционное сопоставление по первой строке.
-  if (headerIndex === -1 && clean.length > 0) {
-    const first = clean[0];
-    const positional = { name: null, sku: null, brand: null, quantity: null, cost_price: null, sell_price: null, shelf: null };
-    first.forEach((cell, idx) => {
-      const s = String(cell ?? '').trim();
-      if (!s) return;
-      if (/^[-+]?\d+([.,]\d+)?$/.test(s.replace(/\s/g, ''))) {
-        if (positional.quantity === null) positional.quantity = idx;
-        else if (positional.cost_price === null) positional.cost_price = idx;
-        else if (positional.sell_price === null) positional.sell_price = idx;
-      } else {
-        if (positional.sku === null && /[0-9]/.test(s) && s.length <= 24) positional.sku = idx;
-        else if (positional.name === null) positional.name = idx;
-      }
-    });
-    const anyMatched = Object.values(positional).some((v) => v !== null);
-    if (anyMatched) {
-      columnMap = positional;
-      headerIndex = 0;
-    }
-  }
-
   if (!columnMap) {
     return { parts: [], recognized: false };
+  }
+
+  // Сопоставляем колонку валюты с соответствующей ценой (валюта идёт сразу после цены).
+  let costCurrencyCol = null;
+  let sellCurrencyCol = null;
+  for (const idx of currencyCols) {
+    if (columnMap.cost_price !== undefined && idx === columnMap.cost_price + 1) costCurrencyCol = idx;
+    if (columnMap.sell_price !== undefined && idx === columnMap.sell_price + 1) sellCurrencyCol = idx;
   }
 
   const parts = [];
@@ -157,31 +178,33 @@ function parseRows(rows) {
     let name = get('name');
     let sku = get('sku');
 
-    // Если артикул совпадает с названием — это не артикул, а дубликат названия.
-    if (sku && name && norm(sku) === norm(name)) {
-      sku = null;
-    }
-    // Если артикул не похож на код (нет цифр) — оставляем только название.
-    if (sku && !/[0-9]/.test(sku)) {
-      sku = null;
-    }
+    if (sku && name && norm(sku) === norm(name)) sku = null;
+    if (sku && !/[0-9]/.test(sku)) sku = null;
 
     if (!name && !sku) continue;
 
-    const num = (key) => {
-      const v = get(key);
-      if (v === null) return 0;
-      const parsed = parseFloat(v.replace(/\s/g, '').replace(',', '.'));
-      return Number.isFinite(parsed) ? parsed : 0;
-    };
+    const costRaw = get('cost_price');
+    const sellRaw = get('sell_price');
+
+    // Валюта: сначала из отдельной колонки, иначе из значения самой цены, иначе по умолчанию UZS.
+    const costCurrency =
+      (costCurrencyCol !== null ? detectCurrency(row[costCurrencyCol]) : null) ||
+      detectCurrency(costRaw) ||
+      'UZS';
+    const sellCurrency =
+      (sellCurrencyCol !== null ? detectCurrency(row[sellCurrencyCol]) : null) ||
+      detectCurrency(sellRaw) ||
+      'UZS';
 
     parts.push({
       name: name || '',
       sku: sku || null,
       brand: get('brand') || null,
-      quantity: Math.max(0, Math.round(num('quantity'))),
-      cost_price: num('cost_price'),
-      sell_price: num('sell_price'),
+      quantity: Math.max(0, Math.round(parseNumber(get('quantity')))),
+      cost_price: parseNumber(costRaw),
+      sell_price: parseNumber(sellRaw),
+      cost_currency: costCurrency,
+      sell_currency: sellCurrency,
       shelf: get('shelf') || null,
       description: null,
     });
@@ -191,4 +214,4 @@ function parseRows(rows) {
   return { parts: withData, recognized: withData.length > 0 };
 }
 
-module.exports = { parseRows };
+module.exports = { parseRows, detectCurrency };

@@ -94,7 +94,7 @@ router.get('/:id', async (req, res) => {
 
 // Создание запчасти (только админ), с начальным остатком на складе.
 router.post('/', adminOnly, async (req, res) => {
-  const { name, sku, brand, category_id, cost_price, sell_price, description, initial_quantity, image_url, shelf } = req.body || {};
+  const { name, sku, brand, category_id, cost_price, sell_price, description, initial_quantity, image_url, shelf, cost_currency, sell_currency } = req.body || {};
   if (!name || !String(name).trim()) {
     return res.status(400).json({ success: false, error: 'Введите название запчасти' });
   }
@@ -109,6 +109,8 @@ router.post('/', adminOnly, async (req, res) => {
     category_id: category_id ? Number(category_id) : null,
     cost_price: Number(cost_price) || 0,
     sell_price: Number(sell_price) || 0,
+    cost_currency: cost_currency || 'UZS',
+    sell_currency: sell_currency || 'UZS',
     description: description || null,
     image_url: image_url || null,
     shelf: shelf ? String(shelf).trim() : null,
@@ -135,7 +137,7 @@ router.put('/:id', adminOnly, async (req, res) => {
   const p = await col('parts').findOne({ id });
   if (!p) return res.status(404).json({ success: false, error: 'Запчасть не найдена' });
 
-  const { name, sku, brand, category_id, cost_price, sell_price, description, image_url, shelf } = req.body || {};
+  const { name, sku, brand, category_id, cost_price, sell_price, description, image_url, shelf, cost_currency, sell_currency } = req.body || {};
 
   if (sku !== undefined && sku) {
     const exists = await col('parts').findOne({ sku: String(sku).trim() });
@@ -151,6 +153,8 @@ router.put('/:id', adminOnly, async (req, res) => {
   if (category_id !== undefined) set.category_id = category_id ? Number(category_id) : null;
   if (cost_price !== undefined) set.cost_price = Number(cost_price);
   if (sell_price !== undefined) set.sell_price = Number(sell_price);
+  if (cost_currency !== undefined) set.cost_currency = cost_currency;
+  if (sell_currency !== undefined) set.sell_currency = sell_currency;
   if (description !== undefined) set.description = description;
   if (image_url !== undefined) set.image_url = image_url;
   if (shelf !== undefined) set.shelf = shelf ? String(shelf).trim() : null;

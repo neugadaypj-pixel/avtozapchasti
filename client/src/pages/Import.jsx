@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { API } from '../api.js';
 import { useI18n } from '../i18n.jsx';
-import { Button, Empty, Spinner, Badge, fmtMoney, useToast } from '../components/ui.jsx';
+import { Button, Empty, Spinner, Badge, useToast } from '../components/ui.jsx';
+
+function fmtPrice(n, currency) {
+  const v = Number(n) || 0;
+  const formatted = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(v);
+  return `${formatted} ${currency || 'UZS'}`;
+}
 
 export function ImportPage({ onNavigate }) {
   const { t } = useI18n();
@@ -105,8 +111,8 @@ export function ImportPage({ onNavigate }) {
                     <td>{p.brand || '—'}</td>
                     <td>{p.shelf || '—'}</td>
                     <td>{p.quantity}</td>
-                    <td className="nowrap">{fmtMoney(p.cost_price)}</td>
-                    <td className="nowrap">{fmtMoney(p.sell_price)}</td>
+                    <td className="nowrap">{fmtPrice(p.cost_price, p.cost_currency)}</td>
+                    <td className="nowrap">{fmtPrice(p.sell_price, p.sell_currency)}</td>
                   </tr>
                 ))}
               </tbody>

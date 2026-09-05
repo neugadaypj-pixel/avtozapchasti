@@ -168,7 +168,7 @@ export function PartsPage({ onNavigate }) {
                   <td>{p.brand || '—'}</td>
                   <td>{p.shelf || '—'}</td>
                   <td className="muted">{p.category_name || '—'}</td>
-                  <td className="nowrap">{fmtMoney(p.sell_price)}</td>
+                  <td className="nowrap">{fmtMoney(p.sell_price)} · {p.sell_currency || 'UZS'}</td>
                   <td>
                     <Badge tone={p.total > 0 ? 'success' : 'gray'}>
                       {p.total} {t('common.pieces')}
@@ -259,8 +259,8 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
         <div className="detail-field"><span>{t('parts.brand')}</span><strong>{part.brand || '—'}</strong></div>
         <div className="detail-field"><span>{t('parts.category')}</span><strong>{part.category_name || '—'}</strong></div>
         <div className="detail-field"><span>{t('parts.shelf')}</span><strong>{part.shelf || '—'}</strong></div>
-        <div className="detail-field"><span>{t('parts.cost_price')}</span><strong>{fmtMoney(part.cost_price)}</strong></div>
-        <div className="detail-field"><span>{t('parts.sell_price')}</span><strong>{fmtMoney(part.sell_price)}</strong></div>
+        <div className="detail-field"><span>{t('parts.cost_price')}</span><strong>{fmtMoney(part.cost_price)} · {part.cost_currency || 'UZS'}</strong></div>
+        <div className="detail-field"><span>{t('parts.sell_price')}</span><strong>{fmtMoney(part.sell_price)} · {part.sell_currency || 'UZS'}</strong></div>
         <div className="detail-field"><span>{t('parts.total_available')}</span><strong>{part.total} {t('common.pieces')}</strong></div>
       </div>
 
@@ -341,6 +341,8 @@ function PartForm({ part, categories, onSave, onCancel }) {
   const [categoryId, setCategoryId] = useState(part?.category_id || '');
   const [costPrice, setCostPrice] = useState(part?.cost_price ?? '');
   const [sellPrice, setSellPrice] = useState(part?.sell_price ?? '');
+  const [costCurrency, setCostCurrency] = useState(part?.cost_currency || 'UZS');
+  const [sellCurrency, setSellCurrency] = useState(part?.sell_currency || 'UZS');
   const [shelf, setShelf] = useState(part?.shelf || '');
   const [description, setDescription] = useState(part?.description || '');
   const [initialQty, setInitialQty] = useState('');
@@ -368,6 +370,8 @@ function PartForm({ part, categories, onSave, onCancel }) {
       cost_price: costPrice, sell_price: sellPrice, description,
       image_url: imageUrl || null,
       shelf: shelf || null,
+      cost_currency: costCurrency,
+      sell_currency: sellCurrency,
       initial_quantity: part ? undefined : (initialQty || 0),
     });
   }
@@ -397,8 +401,20 @@ function PartForm({ part, categories, onSave, onCancel }) {
       <Field label={t('parts.cost_price')}>
         <input className="input" type="number" min="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} placeholder="0" />
       </Field>
+      <Field label={t('parts.cost_currency')}>
+        <Select value={costCurrency} onChange={(e) => setCostCurrency(e.target.value)}>
+          <option value="UZS">UZS</option>
+          <option value="USD">USD</option>
+        </Select>
+      </Field>
       <Field label={t('parts.sell_price')}>
         <input className="input" type="number" min="0" value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} placeholder="0" />
+      </Field>
+      <Field label={t('parts.sell_currency')}>
+        <Select value={sellCurrency} onChange={(e) => setSellCurrency(e.target.value)}>
+          <option value="UZS">UZS</option>
+          <option value="USD">USD</option>
+        </Select>
       </Field>
       {!part && (
         <Field label={t('parts.initial_qty')}>
