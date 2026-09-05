@@ -489,6 +489,9 @@ select.input:hover, select.select:hover { border-color: #d8dce5; }
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.select-custom-search { padding: 4px; position: sticky; top: -6px; background: var(--surface); z-index: 1; }
+.select-custom-search .input { width: 100%; padding: 7px 10px; font-size: 13px; }
+.select-custom-empty { padding: 14px; text-align: center; color: var(--muted); font-size: 13px; }
 .select-custom-option {
   padding: 9px 10px;
   border-radius: 8px;

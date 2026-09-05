@@ -264,7 +264,7 @@ export function InventoryPage() {
       <Modal open={!!assignModal} title={t('inv.assign_title')} onClose={() => setAssignModal(null)}>
         <form onSubmit={doAssign} className="form-grid">
           <Field label={t('inv.part')} required>
-            <Select name="part_id" placeholder={t('common.select')} required>
+            <Select name="part_id" placeholder={t('common.select')} required searchable>
               <option value="">{t('common.select')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} ({t('common.in_warehouse')}: {p.warehouse_qty})</option>
@@ -296,7 +296,7 @@ export function InventoryPage() {
       <Modal open={!!transferModal} title={t('inv.worker_transfer')} onClose={() => setTransferModal(null)}>
         <form onSubmit={doTransfer} className="form-grid">
           <Field label={t('inv.part')} required>
-            <Select name="part_id" placeholder={t('common.select')} required>
+            <Select name="part_id" placeholder={t('common.select')} required searchable>
               <option value="">{t('common.select')}</option>
               {parts.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -342,7 +342,7 @@ export function InventoryPage() {
             </Field>
           ) : (
             <Field label={t('inv.part')} required>
-              <Select name="part_id" placeholder={t('common.select')} required>
+              <Select name="part_id" placeholder={t('common.select')} required searchable>
                 <option value="">{t('common.select')}</option>
                 {parts.filter((p) => p.warehouse_qty > 0).map((p) => (
                   <option key={p.id} value={p.id}>{p.name} ({t('common.in_warehouse')}: {p.warehouse_qty})</option>

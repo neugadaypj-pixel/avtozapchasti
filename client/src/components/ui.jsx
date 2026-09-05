@@ -76,13 +76,24 @@ export function Button({ children, variant = 'primary', size, type = 'button', .
   );
 }
 
+/* ---------- Нормализация строки (для поиска в Select) ---------- */
+function normalizeSelect(s) {
+  return String(s ?? '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /* ---------- Современный выпадающий список ---------- */
-export function Select({ value, onChange, defaultValue, children, placeholder, className = '', required, name }) {
+export function Select({ value, onChange, defaultValue, children, placeholder, className = '', required, name, searchable = false }) {
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState(value ?? defaultValue ?? '');
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const rootRef = useRef(null);
   const nativeRef = useRef(null);
+  const searchRef = useRef(null);
 
   // Синхронизация с внешним контролируемым значением.
   useEffect(() => {
@@ -113,13 +124,25 @@ export function Select({ value, onChange, defaultValue, children, placeholder, c
     (c) => React.isValidElement(c) && c.type === 'option'
   );
 
+  // Фильтрация опций при поиске (searchable).
+  const q = normalizeSelect(query);
+  const visibleOptions = searchable && q
+    ? options.filter((o) => normalizeSelect(String(o.props.children)).includes(q))
+    : options;
+
   const selected = options.find((o) => String(o.props.value) === String(internal));
   const label = selected ? selected.props.children : (placeholder || '');
+
+  // При открытии фокусируем поле поиска.
+  useEffect(() => {
+    if (open && searchable && searchRef.current) searchRef.current.focus();
+  }, [open, searchable]);
 
   function choose(optValue) {
     setInternal(optValue);
     if (onChange) onChange({ target: { value: optValue, name } });
     setOpen(false);
+    setQuery('');
   }
 
   return (
@@ -139,24 +162,40 @@ export function Select({ value, onChange, defaultValue, children, placeholder, c
 
       {open && (
         <div className="select-custom-menu" role="listbox">
-          {options.map((o) => {
-            const optValue = String(o.props.value);
-            const active = optValue === String(internal);
-            return (
-              <div
-                key={o.key ?? optValue}
-                className={`select-custom-option ${active ? 'is-active' : ''}`}
-                role="option"
-                aria-selected={active}
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  choose(o.props.value);
-                }}
-              >
-                {o.props.children}
-              </div>
-            );
-          })}
+          {searchable && (
+            <div className="select-custom-search">
+              <input
+                ref={searchRef}
+                className="input"
+                placeholder="Поиск…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+          {visibleOptions.length === 0 ? (
+            <div className="select-custom-empty">Ничего не найдено</div>
+          ) : (
+            visibleOptions.map((o) => {
+              const optValue = String(o.props.value);
+              const active = optValue === String(internal);
+              return (
+                <div
+                  key={o.key ?? optValue}
+                  className={`select-custom-option ${active ? 'is-active' : ''}`}
+                  role="option"
+                  aria-selected={active}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    choose(o.props.value);
+                  }}
+                >
+                  {o.props.children}
+                </div>
+              );
+            })
+          )}
         </div>
       )}
 
