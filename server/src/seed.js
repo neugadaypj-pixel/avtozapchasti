@@ -16,7 +16,7 @@ async function seed() {
   // Флаг --reset очищает все коллекции перед наполнением.
   if (process.argv.includes('--reset')) {
     const d = await getDb();
-    for (const name of ['users', 'categories', 'parts', 'inventory', 'transfers', 'sales', 'expenses', 'notifications', 'orders', 'audit_logs', 'counters']) {
+    for (const name of ['users', 'categories', 'parts', 'inventory', 'transfers', 'sales', 'expenses', 'notifications', 'orders', 'audit_logs', 'debt_payments', 'counters']) {
       await d.collection(name).deleteMany({});
     }
     console.log('Коллекции очищены.');

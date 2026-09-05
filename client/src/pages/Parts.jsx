@@ -150,6 +150,7 @@ export function PartsPage({ onNavigate }) {
                 <th>{t('parts.name')}</th>
                 <th>{t('parts.sku')}</th>
                 <th>{t('parts.brand')}</th>
+                <th>{t('parts.shelf')}</th>
                 <th>{t('parts.category')}</th>
                 <th>{t('common.price')}</th>
                 <th>{t('parts.availability')}</th>
@@ -165,6 +166,7 @@ export function PartsPage({ onNavigate }) {
                   </td>
                   <td className="muted">{p.sku || '—'}</td>
                   <td>{p.brand || '—'}</td>
+                  <td>{p.shelf || '—'}</td>
                   <td className="muted">{p.category_name || '—'}</td>
                   <td className="nowrap">{fmtMoney(p.sell_price)}</td>
                   <td>
@@ -256,6 +258,7 @@ function PartDetail({ part, isAdmin, workers, onEdit, onDelete, onClose, onRefre
         <div className="detail-field"><span>{t('parts.sku')}</span><strong>{part.sku || '—'}</strong></div>
         <div className="detail-field"><span>{t('parts.brand')}</span><strong>{part.brand || '—'}</strong></div>
         <div className="detail-field"><span>{t('parts.category')}</span><strong>{part.category_name || '—'}</strong></div>
+        <div className="detail-field"><span>{t('parts.shelf')}</span><strong>{part.shelf || '—'}</strong></div>
         <div className="detail-field"><span>{t('parts.cost_price')}</span><strong>{fmtMoney(part.cost_price)}</strong></div>
         <div className="detail-field"><span>{t('parts.sell_price')}</span><strong>{fmtMoney(part.sell_price)}</strong></div>
         <div className="detail-field"><span>{t('parts.total_available')}</span><strong>{part.total} {t('common.pieces')}</strong></div>
@@ -338,6 +341,7 @@ function PartForm({ part, categories, onSave, onCancel }) {
   const [categoryId, setCategoryId] = useState(part?.category_id || '');
   const [costPrice, setCostPrice] = useState(part?.cost_price ?? '');
   const [sellPrice, setSellPrice] = useState(part?.sell_price ?? '');
+  const [shelf, setShelf] = useState(part?.shelf || '');
   const [description, setDescription] = useState(part?.description || '');
   const [initialQty, setInitialQty] = useState('');
   const [imageUrl, setImageUrl] = useState(part?.image_url || '');
@@ -363,6 +367,7 @@ function PartForm({ part, categories, onSave, onCancel }) {
       name, sku, brand, category_id: categoryId || null,
       cost_price: costPrice, sell_price: sellPrice, description,
       image_url: imageUrl || null,
+      shelf: shelf || null,
       initial_quantity: part ? undefined : (initialQty || 0),
     });
   }
@@ -385,6 +390,9 @@ function PartForm({ part, categories, onSave, onCancel }) {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </Select>
+      </Field>
+      <Field label={t('parts.shelf')} hint={t('common.optional')}>
+        <input className="input" value={shelf} onChange={(e) => setShelf(e.target.value)} placeholder={t('parts.shelf_placeholder')} />
       </Field>
       <Field label={t('parts.cost_price')}>
         <input className="input" type="number" min="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} placeholder="0" />

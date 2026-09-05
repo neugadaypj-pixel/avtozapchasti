@@ -33,13 +33,15 @@ export function AuditLogPage() {
     order_confirm: t('audit.order_confirm'),
     expense: t('audit.expense'),
     confirm_payment: t('audit.confirm_payment'),
+    debt_payment: t('audit.debt_payment'),
+    clear_data: t('audit.clear_data'),
   };
 
   const actionTones = {
     create: 'success', update: 'info', delete: 'danger', login: 'gray',
     sell: 'success', assign: 'info', return: 'warn', restock: 'success',
     'worker-transfer': 'info', order_create: 'info', order_confirm: 'success',
-    expense: 'warn', confirm_payment: 'success',
+    expense: 'warn', confirm_payment: 'success', debt_payment: 'success', clear_data: 'danger',
   };
 
   const entityLabels = {
@@ -50,6 +52,8 @@ export function AuditLogPage() {
     order: t('audit.entity_order'),
     category: t('audit.entity_category'),
     expense: t('audit.entity_expense'),
+    debt_payment: t('audit.entity_debt_payment'),
+    system: t('audit.entity_system'),
   };
 
   return (

@@ -94,7 +94,7 @@ router.get('/:id', async (req, res) => {
 
 // Создание запчасти (только админ), с начальным остатком на складе.
 router.post('/', adminOnly, async (req, res) => {
-  const { name, sku, brand, category_id, cost_price, sell_price, description, initial_quantity, image_url } = req.body || {};
+  const { name, sku, brand, category_id, cost_price, sell_price, description, initial_quantity, image_url, shelf } = req.body || {};
   if (!name || !String(name).trim()) {
     return res.status(400).json({ success: false, error: 'Введите название запчасти' });
   }
@@ -112,6 +112,7 @@ router.post('/', adminOnly, async (req, res) => {
     sell_price: Number(sell_price) || 0,
     description: description || null,
     image_url: image_url || null,
+    shelf: shelf ? String(shelf).trim() : null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   });
@@ -131,7 +132,7 @@ router.put('/:id', adminOnly, async (req, res) => {
   const p = await col('parts').findOne({ id });
   if (!p) return res.status(404).json({ success: false, error: 'Запчасть не найдена' });
 
-  const { name, sku, brand, category_id, cost_price, sell_price, description, image_url } = req.body || {};
+  const { name, sku, brand, category_id, cost_price, sell_price, description, image_url, shelf } = req.body || {};
 
   if (sku !== undefined && sku) {
     const exists = await col('parts').findOne({ sku: String(sku).trim() });
@@ -149,6 +150,7 @@ router.put('/:id', adminOnly, async (req, res) => {
   if (sell_price !== undefined) set.sell_price = Number(sell_price);
   if (description !== undefined) set.description = description;
   if (image_url !== undefined) set.image_url = image_url;
+  if (shelf !== undefined) set.shelf = shelf ? String(shelf).trim() : null;
 
   await col('parts').update({ id }, { $set: set });
 

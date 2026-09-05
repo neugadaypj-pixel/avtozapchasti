@@ -5,18 +5,13 @@ const { logAction } = require('../audit');
 
 const router = express.Router();
 
-// Типы расходов рабочего: rent (аренда), bonus (бонус клиенту), other.
-const EXPENSE_TYPES = ['rent', 'bonus', 'other'];
-
 // Создание расхода (рабочий добавляет свои расходы, админ может за любого).
+// Все расходы считаются как простые расходы (без разделения на аренду/бонус/прочее).
 router.post('/expenses', async (req, res) => {
-  const { amount, type, description, worker_id } = req.body || {};
+  const { amount, description, worker_id } = req.body || {};
   const amt = Number(amount);
   if (!amt || amt <= 0) {
     return res.status(400).json({ success: false, error: "Musbat summa kiriting" });
-  }
-  if (!EXPENSE_TYPES.includes(type)) {
-    return res.status(400).json({ success: false, error: "Xarajat turini tanlang" });
   }
 
   let workerId = req.user.id;
@@ -27,13 +22,13 @@ router.post('/expenses', async (req, res) => {
   const e = await col('expenses').insert({
     worker_id: workerId,
     amount: amt,
-    type,
+    type: 'expense',
     description: description || null,
     created_by: req.user.id,
     created_at: new Date().toISOString(),
   });
 
-  await logAction(req.user, 'expense', 'expense', e.id, { worker_id: workerId, amount: amt, type });
+  await logAction(req.user, 'expense', 'expense', e.id, { worker_id: workerId, amount: amt });
   res.status(201).json({ success: true, data: e });
 });
 
@@ -53,10 +48,49 @@ router.get('/expenses', async (req, res) => {
   res.json({ success: true, data: data.slice(0, 500) });
 });
 
+// Подтверждение возврата долга рабочим (только админ).
+router.post('/debt-payments', adminOnly, async (req, res) => {
+  const { amount, worker_id, description } = req.body || {};
+  const amt = Number(amount);
+  if (!amt || amt <= 0) {
+    return res.status(400).json({ success: false, error: "Musbat summa kiriting" });
+  }
+  if (!worker_id) {
+    return res.status(400).json({ success: false, error: "Ishchini tanlang" });
+  }
+
+  const dp = await col('debt_payments').insert({
+    worker_id: Number(worker_id),
+    amount: amt,
+    description: description || null,
+    created_by: req.user.id,
+    created_at: new Date().toISOString(),
+  });
+
+  await logAction(req.user, 'debt_payment', 'debt_payment', dp.id, {
+    worker_id: Number(worker_id), amount: amt,
+  });
+  res.status(201).json({ success: true, data: dp });
+});
+
+// Список подтверждений возврата долга (только админ).
+router.get('/debt-payments', adminOnly, async (req, res) => {
+  let rows = await col('debt_payments').find({});
+  rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)) || b.id - a.id);
+  const users = await col('users').find({});
+  const userMap = Object.fromEntries(users.map((u) => [u.id, u]));
+  const data = rows.map((r) => ({
+    ...r,
+    worker_name: userMap[r.worker_id]?.full_name || '—',
+  }));
+  res.json({ success: true, data: data.slice(0, 500) });
+});
+
 // Денежный оборот для рабочего (или админ видит по всем/конкретному).
 router.get('/turnover', async (req, res) => {
   let sales = await col('sales').find({});
   let expenses = await col('expenses').find({});
+  let debtPayments = await col('debt_payments').find({});
 
   let scopeWorkerId = req.user.id;
   if (req.user.role === 'admin') {
@@ -64,13 +98,14 @@ router.get('/turnover', async (req, res) => {
       scopeWorkerId = Number(req.query.worker_id);
     } else {
       // админ видит все
-      const all = await allTurnover(sales, expenses);
+      const all = await allTurnover(sales, expenses, debtPayments);
       return res.json({ success: true, data: all });
     }
   }
 
   const workerSales = sales.filter((s) => s.worker_id === scopeWorkerId);
   const workerExpenses = expenses.filter((e) => e.worker_id === scopeWorkerId);
+  const workerDebtPayments = debtPayments.filter((d) => d.worker_id === scopeWorkerId);
 
   // Долг рабочего = сумма paid продаж (cash — наличные, которые он должен отдать админу).
   // Карта принадлежит складчику (админ), банк — компании, поэтому долг менеджера = только cash (paid).
@@ -91,22 +126,13 @@ router.get('/turnover', async (req, res) => {
     .reduce((sum, s) => sum + s.total, 0);
 
   // Все расходы рабочего учитываются за счёт компании.
-  const bonusTotal = workerExpenses
-    .filter((e) => e.type === 'bonus')
-    .reduce((sum, e) => sum + e.amount, 0);
-
-  const rentTotal = workerExpenses
-    .filter((e) => e.type === 'rent')
-    .reduce((sum, e) => sum + e.amount, 0);
-
-  const otherTotal = workerExpenses
-    .filter((e) => e.type === 'other')
-    .reduce((sum, e) => sum + e.amount, 0);
-
   const totalExpenses = workerExpenses.reduce((s, e) => s + e.amount, 0);
 
-  // Долг = наличные (должен отдать) - ВСЕ расходы (за счёт компании).
-  const debtToAdmin = cashPaid - totalExpenses;
+  // Сумма, которую админ уже подтвердил как возвращённый долг.
+  const debtPaid = workerDebtPayments.reduce((s, d) => s + d.amount, 0);
+
+  // Долг = наличные (должен отдать) - ВСЕ расходы (за счёт компании) - подтверждённые выплаты долга.
+  const debtToAdmin = cashPaid - totalExpenses - debtPaid;
 
   const result = {
     worker_id: scopeWorkerId,
@@ -115,17 +141,15 @@ router.get('/turnover', async (req, res) => {
     card_paid: cardPaid,
     bank_paid: bankPaid,
     pending: pending,
-    expenses_total: workerExpenses.reduce((s, e) => s + e.amount, 0),
-    bonus_total: bonusTotal,
-    rent_total: rentTotal,
-    other_total: otherTotal,
+    expenses_total: totalExpenses,
+    debt_paid: debtPaid,
     debt_to_admin: debtToAdmin,
   };
 
   res.json({ success: true, data: result });
 });
 
-async function allTurnover(sales, expenses) {
+async function allTurnover(sales, expenses, debtPayments) {
   const [users, parts] = await Promise.all([
     col('users').find({}),
     col('parts').find({}),
@@ -144,10 +168,11 @@ async function allTurnover(sales, expenses) {
   const byWorker = workers.map((w) => {
     const ws = sales.filter((s) => s.worker_id === w.id);
     const we = expenses.filter((e) => e.worker_id === w.id);
+    const wd = debtPayments.filter((d) => d.worker_id === w.id);
     const paidSales = ws.filter((s) => s.payment_status === 'paid');
     const cashPaid = paidSales.filter((s) => s.payment_type === 'cash').reduce((sum, s) => sum + s.total, 0);
-    const bonusTotal = we.filter((e) => e.type === 'bonus').reduce((sum, e) => sum + e.amount, 0);
     const totalExpenses = we.reduce((s, e) => s + e.amount, 0);
+    const debtPaid = wd.reduce((s, d) => s + d.amount, 0);
     const revenue = paidSales.reduce((sum, s) => sum + s.total, 0);
     const cogs = costOfGoods(paidSales);
     // Чистая прибыль = выручка(оплаченная) - себестоимость - расходы рабочего.
@@ -163,10 +188,8 @@ async function allTurnover(sales, expenses) {
       bank_paid: paidSales.filter((s) => s.payment_type === 'bank').reduce((sum, s) => sum + s.total, 0),
       pending: ws.filter((s) => s.payment_status === 'pending').reduce((sum, s) => sum + s.total, 0),
       expenses_total: totalExpenses,
-      bonus_total: bonusTotal,
-      rent_total: we.filter((e) => e.type === 'rent').reduce((sum, e) => sum + e.amount, 0),
-      other_total: we.filter((e) => e.type === 'other').reduce((sum, e) => sum + e.amount, 0),
-      debt_to_admin: cashPaid - totalExpenses,
+      debt_paid: debtPaid,
+      debt_to_admin: cashPaid - totalExpenses - debtPaid,
       revenue,
       cogs,
       profit,
@@ -177,6 +200,7 @@ async function allTurnover(sales, expenses) {
   const totalRevenue = paidSales.reduce((s, x) => s + x.total, 0);
   const totalCogs = costOfGoods(paidSales);
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const totalDebtPaid = debtPayments.reduce((s, d) => s + d.amount, 0);
 
   const total = {
     total_sales: sales.reduce((s, x) => s + x.total, 0),
@@ -185,6 +209,7 @@ async function allTurnover(sales, expenses) {
     bank_paid: paidSales.filter((s) => s.payment_type === 'bank').reduce((sum, s) => sum + s.total, 0),
     pending: sales.filter((s) => s.payment_status === 'pending').reduce((sum, s) => sum + s.total, 0),
     expenses_total: totalExpenses,
+    debt_paid: totalDebtPaid,
     revenue: totalRevenue,
     cogs: totalCogs,
     profit: totalRevenue - totalCogs - totalExpenses,

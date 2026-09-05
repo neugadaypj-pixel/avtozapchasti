@@ -13,7 +13,7 @@ try {
 const { connect, getDb } = require('./db');
 const { uploadImage, isConfigured } = require('./r2');
 
-const COLLECTIONS = ['users', 'categories', 'parts', 'inventory', 'transfers', 'sales', 'audit_logs', 'counters'];
+const COLLECTIONS = ['users', 'categories', 'parts', 'inventory', 'transfers', 'sales', 'expenses', 'orders', 'notifications', 'audit_logs', 'debt_payments', 'counters'];
 
 async function backup() {
   await connect();

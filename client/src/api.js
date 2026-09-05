@@ -89,6 +89,11 @@ export const API = {
     turnover: (workerId) => api(`/money/turnover${workerId ? `?worker_id=${workerId}` : ''}`),
     expenses: () => api('/money/expenses'),
     addExpense: (body) => api('/money/expenses', { method: 'POST', body }),
+    debtPayments: () => api('/money/debt-payments'),
+    addDebtPayment: (body) => api('/money/debt-payments', { method: 'POST', body }),
+  },
+  admin: {
+    clearData: () => api('/admin/clear-data', { method: 'POST' }),
   },
   uploads: {
     image: (file) => {

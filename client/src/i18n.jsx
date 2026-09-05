@@ -116,6 +116,8 @@ const translations = {
     'parts.description': 'Описание',
     'parts.initial_qty': 'Начальное количество на складе',
     'parts.photo': 'Фото запчасти',
+    'parts.shelf': 'Полка',
+    'parts.shelf_placeholder': 'Например, A-12',
 
     // продажа
     'sale.form': 'Оформить продажу',
@@ -157,6 +159,11 @@ const translations = {
     'money.revenue': 'Выручка (оплачено)',
     'money.cogs': 'Себестоимость',
     'money.profit': 'Чистая прибыль',
+    'money.confirm_debt': 'Подтвердить возврат долга',
+    'money.debt_paid_added': 'Возврат долга подтверждён',
+    'money.debt_paid': 'Выплачено долга',
+    'money.debt_payments_title': 'Подтверждённые возвраты долгов',
+    'money.debt_payments_none': 'Возвратов долга пока нет',
 
     // заказы на поставку
     'orders.title': 'Заказы и поставки',
@@ -297,6 +304,8 @@ const translations = {
     'audit.order_confirm': 'Заказ подтверждён',
     'audit.expense': 'Расход',
     'audit.confirm_payment': 'Оплата подтверждена',
+    'audit.debt_payment': 'Возврат долга подтверждён',
+    'audit.clear_data': 'Очистка данных',
     'audit.entity_user': 'Пользователь',
     'audit.entity_part': 'Запчасть',
     'audit.entity_sale': 'Продажа',
@@ -304,6 +313,8 @@ const translations = {
     'audit.entity_order': 'Заказ',
     'audit.entity_category': 'Категория',
     'audit.entity_expense': 'Расход',
+    'audit.entity_debt_payment': 'Возврат долга',
+    'audit.entity_system': 'Система',
 
     // общие доп.
     'common.optional': 'Необязательно',
@@ -397,6 +408,10 @@ const translations = {
     'money.card_transfer': 'Перевод на карту',
     'money.bank_transfer': 'На банковский счёт',
     'money.bonus_company': 'Бонус клиенту (за счёт компании)',
+    'clear.title': 'Очистить данные',
+    'clear.confirm': 'Удалить все данные сайта (запчасти, продажи, расходы, рабочих)? Останутся только администраторы. Это действие необратимо.',
+    'clear.done': 'Данные очищены',
+    'clear.btn': 'Очистить все данные',
 
     // дашборд доп.
     'dash.sales_count': 'продаж',
@@ -514,6 +529,8 @@ const translations = {
     'parts.description': 'Tavsif',
     'parts.initial_qty': 'Ombordagi boshlang\'ich miqdor',
     'parts.photo': 'Ehtiyot qism rasmi',
+    'parts.shelf': 'Tokcha',
+    'parts.shelf_placeholder': 'Masalan, A-12',
 
     'sale.form': 'Sotuvni rasmiylashtirish',
     'sale.quantity': 'Miqdor',
@@ -552,6 +569,11 @@ const translations = {
     'money.revenue': "Tushum (to'langan)",
     'money.cogs': 'Tannarx',
     'money.profit': 'Sof foyda',
+    'money.confirm_debt': "Qarz to'langanini tasdiqlash",
+    'money.debt_paid_added': "Qarz to'lanishi tasdiqlandi",
+    'money.debt_paid': "To'langan qarz",
+    'money.debt_payments_title': "Tasdiqlangan qarz to'lovlari",
+    'money.debt_payments_none': "Qarz to'lovlari hali yo'q",
 
     // заказы на поставку
     'orders.title': 'Buyurtmalar va yetkazib berish',
@@ -686,6 +708,8 @@ const translations = {
     'audit.order_confirm': 'Buyurtma tasdiqlandi',
     'audit.expense': 'Xarajat',
     'audit.confirm_payment': "To'lov tasdiqlandi",
+    'audit.debt_payment': "Qarz to'lanishi tasdiqlandi",
+    'audit.clear_data': "Ma'lumotlarni tozalash",
     'audit.entity_user': 'Foydalanuvchi',
     'audit.entity_part': 'Ehtiyot qism',
     'audit.entity_sale': 'Sotuv',
@@ -693,6 +717,8 @@ const translations = {
     'audit.entity_order': 'Buyurtma',
     'audit.entity_category': 'Kategoriya',
     'audit.entity_expense': 'Xarajat',
+    'audit.entity_debt_payment': "Qarz to'lovi",
+    'audit.entity_system': 'Tizim',
 
     // общие доп.
     'common.optional': 'Majburiy emas',
@@ -786,6 +812,10 @@ const translations = {
     'money.card_transfer': "Kartaga o'tkazish",
     'money.bank_transfer': 'Bank hisobiga',
     'money.bonus_company': 'Mijozga bonus (kompaniya hisobidan)',
+    'clear.title': "Ma'lumotlarni tozalash",
+    'clear.confirm': "Saytdagi barcha ma'lumotlarni (ehtiyot qismlar, sotuvlar, xarajatlar, ishchilar) o'chirasizmi? Faqat administratorlar qoladi. Bu amalni ortga qaytarib bo'lmaydi.",
+    'clear.done': "Ma'lumotlar tozalandi",
+    'clear.btn': "Barcha ma'lumotlarni tozalash",
 
     // дашборд доп.
     'dash.sales_count': 'sotuv',

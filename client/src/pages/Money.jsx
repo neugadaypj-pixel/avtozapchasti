@@ -4,14 +4,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, StatCard, fmtMoney, fmtDate, useToast, useConfirm, Select } from '../components/ui.jsx';
 
-function expenseLabels(t) {
-  return {
-    rent: t('money.rent'),
-    bonus: t('money.bonus'),
-    other: t('money.other'),
-  };
-}
-
 export function MoneyPage() {
   const { user, isAdmin } = useAuth();
   const { t } = useI18n();
@@ -20,15 +12,16 @@ export function MoneyPage() {
   const [turnover, setTurnover] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [sales, setSales] = useState([]);
+  const [debtPayments, setDebtPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showExpense, setShowExpense] = useState(false);
+  const [showDebtPayment, setShowDebtPayment] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState('');
   const [workers, setWorkers] = useState([]);
 
   async function load() {
     setLoading(true);
     try {
-      const params = isAdmin && selectedWorker ? `?worker_id=${selectedWorker}` : '';
       const [t, e, s] = await Promise.all([
         API.money.turnover(isAdmin && selectedWorker ? selectedWorker : undefined),
         API.money.expenses(),
@@ -38,8 +31,12 @@ export function MoneyPage() {
       setExpenses(e.data);
       setSales(s.data);
       if (isAdmin) {
-        const u = await API.users.list();
+        const [u, d] = await Promise.all([
+          API.users.list(),
+          API.money.debtPayments(),
+        ]);
         setWorkers(u.data.filter((x) => x.role === 'worker'));
+        setDebtPayments(d.data);
       }
     } catch (err) {
       toast(err.message, 'error');
@@ -56,11 +53,27 @@ export function MoneyPage() {
     try {
       await API.money.addExpense({
         amount: Number(fd.get('amount')),
-        type: fd.get('type'),
         description: fd.get('description'),
       });
       toast(t('money.expense_added'), 'success');
       setShowExpense(false);
+      load();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  }
+
+  async function addDebtPayment(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await API.money.addDebtPayment({
+        amount: Number(fd.get('amount')),
+        worker_id: Number(fd.get('worker_id')),
+        description: fd.get('description'),
+      });
+      toast(t('money.debt_paid_added'), 'success');
+      setShowDebtPayment(false);
       load();
     } catch (err) {
       toast(err.message, 'error');
@@ -92,9 +105,14 @@ export function MoneyPage() {
             {isAdmin ? t('money.subtitle_admin') : t('money.subtitle_worker')}
           </p>
         </div>
-        {!isAdmin && (
-          <Button onClick={() => setShowExpense(true)}>+ {t('money.add_expense')}</Button>
-        )}
+        <div className="page-actions">
+          {isAdmin && (
+            <Button variant="success" onClick={() => setShowDebtPayment(true)}>✓ {t('money.confirm_debt')}</Button>
+          )}
+          {!isAdmin && (
+            <Button onClick={() => setShowExpense(true)}>+ {t('money.add_expense')}</Button>
+          )}
+        </div>
       </div>
 
       {isAdmin && (
@@ -169,7 +187,6 @@ export function MoneyPage() {
               <thead>
                 <tr>
                   <th>{t('common.date')}</th>
-                  <th>{t('money.type')}</th>
                   <th>{t('money.description')}</th>
                   {isAdmin && <th>{t('money.worker')}</th>}
                   <th>{t('money.sum')}</th>
@@ -179,7 +196,6 @@ export function MoneyPage() {
                 {expenses.map((x) => (
                   <tr key={x.id}>
                     <td className="muted nowrap">{fmtDate(x.created_at)}</td>
-                    <td><Badge tone="info">{expenseLabels(t)[x.type] || x.type}</Badge></td>
                     <td className="muted">{x.description || '—'}</td>
                     {isAdmin && <td>{x.worker_name}</td>}
                     <td className="nowrap"><strong>{fmtMoney(x.amount)}</strong></td>
@@ -191,18 +207,46 @@ export function MoneyPage() {
         )}
       </section>
 
+      {/* Подтверждения возврата долга */}
+      {isAdmin && (
+        <section className="card" style={{ marginTop: 16 }}>
+          <div className="card-head">
+            <h3>{t('money.debt_payments_title')}</h3>
+          </div>
+          {debtPayments.length === 0 ? (
+            <Empty title={t('money.debt_payments_none')} />
+          ) : (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>{t('common.date')}</th>
+                    <th>{t('money.worker')}</th>
+                    <th>{t('money.description')}</th>
+                    <th>{t('money.sum')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {debtPayments.map((x) => (
+                    <tr key={x.id}>
+                      <td className="muted nowrap">{fmtDate(x.created_at)}</td>
+                      <td>{x.worker_name}</td>
+                      <td className="muted">{x.description || '—'}</td>
+                      <td className="nowrap"><strong>{fmtMoney(x.amount)}</strong></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Модалка добавления расхода */}
       <Modal open={showExpense} title={t('money.add_expense')} onClose={() => setShowExpense(false)}>
         <form onSubmit={addExpense} className="form-grid">
           <Field label={t('money.sum')} required>
             <input name="amount" type="number" min="1" className="input" required />
-          </Field>
-          <Field label={t('money.type')} required>
-            <Select name="type" defaultValue="rent" required>
-              <option value="rent">{t('money.rent')}</option>
-              <option value="bonus">{t('money.bonus')}</option>
-              <option value="other">{t('money.other')}</option>
-            </Select>
           </Field>
           <Field label={t('money.description')} hint={t('common.optional')}>
             <input name="description" className="input" placeholder={t('money.description')} />
@@ -210,6 +254,29 @@ export function MoneyPage() {
           <div className="form-actions">
             <Button type="button" variant="ghost" onClick={() => setShowExpense(false)}>{t('common.cancel')}</Button>
             <Button type="submit">{t('common.add')}</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Модалка подтверждения возврата долга */}
+      <Modal open={showDebtPayment} title={t('money.confirm_debt')} onClose={() => setShowDebtPayment(false)}>
+        <form onSubmit={addDebtPayment} className="form-grid">
+          <Field label={t('money.worker')} required>
+            <Select name="worker_id" required>
+              {workers.map((w) => (
+                <option key={w.id} value={w.id}>{w.full_name} · {w.city || '—'}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label={t('money.sum')} required>
+            <input name="amount" type="number" min="1" className="input" required />
+          </Field>
+          <Field label={t('money.description')} hint={t('common.optional')}>
+            <input name="description" className="input" placeholder={t('money.description')} />
+          </Field>
+          <div className="form-actions">
+            <Button type="button" variant="ghost" onClick={() => setShowDebtPayment(false)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.confirm')}</Button>
           </div>
         </form>
       </Modal>
@@ -233,10 +300,9 @@ function WorkerTurnover({ data }) {
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-head"><h3>{t('money.expenses_title')}</h3></div>
         <div className="list">
-          <div className="list-row"><span>{t('money.rent')}</span><strong>{fmtMoney(data.rent_total)}</strong></div>
-          <div className="list-row"><span>{t('money.bonus_company')}</span><strong>{fmtMoney(data.bonus_total)}</strong></div>
-          <div className="list-row"><span>{t('money.other')}</span><strong>{fmtMoney(data.other_total)}</strong></div>
           <div className="list-row"><span>{t('money.total_expenses')}</span><strong>{fmtMoney(data.expenses_total)}</strong></div>
+          <div className="list-row"><span>{t('money.debt_paid')}</span><strong>{fmtMoney(data.debt_paid)}</strong></div>
+          <div className="list-row"><span>{t('money.debt')}</span><strong>{fmtMoney(data.debt_to_admin)}</strong></div>
         </div>
       </div>
     </>
@@ -270,6 +336,7 @@ function AdminTurnover({ t }) {
               <th>{tr('money.bank')}</th>
               <th>{tr('money.pending')}</th>
               <th>{tr('money.expenses')}</th>
+              <th>{tr('money.debt_paid')}</th>
               <th>{tr('money.profit')}</th>
               <th>{tr('money.debt')}</th>
             </tr>
@@ -284,6 +351,7 @@ function AdminTurnover({ t }) {
                 <td className="nowrap">{fmtMoney(w.bank_paid)}</td>
                 <td className="nowrap">{fmtMoney(w.pending)}</td>
                 <td className="nowrap">{fmtMoney(w.expenses_total)}</td>
+                <td className="nowrap">{fmtMoney(w.debt_paid)}</td>
                 <td className="nowrap"><Badge tone={w.profit >= 0 ? 'success' : 'danger'}>{fmtMoney(w.profit)}</Badge></td>
                 <td className="nowrap"><Badge tone={w.debt_to_admin > 0 ? 'danger' : 'success'}>{fmtMoney(w.debt_to_admin)}</Badge></td>
               </tr>

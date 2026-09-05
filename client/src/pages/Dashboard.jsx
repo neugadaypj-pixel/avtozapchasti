@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { API } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
-import { StatCard, Empty, Spinner, fmtMoney, fmtDate, Badge } from '../components/ui.jsx';
+import { StatCard, Empty, Spinner, fmtMoney, fmtDate, Badge, Button, useToast, useConfirm } from '../components/ui.jsx';
 
 export function Dashboard({ onNavigate }) {
   const { isAdmin } = useAuth();
   const { t } = useI18n();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -15,6 +17,17 @@ export function Dashboard({ onNavigate }) {
       .then((r) => setData(r.data))
       .catch((e) => setError(e.message));
   }, []);
+
+  async function clearData() {
+    if (!(await confirm({ message: t('clear.confirm'), danger: true }))) return;
+    try {
+      await API.admin.clearData();
+      toast(t('clear.done'), 'success');
+      window.location.reload();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  }
 
   if (error) return <div className="alert alert-error">{error}</div>;
   if (!data) return <Spinner />;
@@ -28,6 +41,9 @@ export function Dashboard({ onNavigate }) {
           <h2>{isAdmin ? t('dash.title_admin') : t('dash.title_worker')}</h2>
           <p className="muted">{isAdmin ? t('dash.subtitle_admin') : t('dash.subtitle_worker')}</p>
         </div>
+        {isAdmin && (
+          <Button variant="danger" onClick={clearData}>🗑 {t('clear.btn')}</Button>
+        )}
       </div>
 
       <div className="stats-grid">
