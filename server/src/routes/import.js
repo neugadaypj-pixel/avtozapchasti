@@ -6,6 +6,7 @@ const { col } = require('../db');
 const { adjustStock } = require('../inventory');
 const { logAction } = require('../audit');
 const { extractPartsFromRows } = require('../ai');
+const { parseRows } = require('../excel');
 
 const router = express.Router();
 router.use(adminOnly);
@@ -34,12 +35,30 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'Таблица пуста' });
     }
 
-    const limited = clean.slice(0, 300);
-    const preview = await extractPartsFromRows(limited);
+    // 1. Пробуем детерминированный разбор по заголовкам колонок.
+    let preview = [];
+    let usedAi = false;
+    const parsed = parseRows(clean.slice(0, 300));
+    preview = parsed.parts;
+
+    // 2. Если не распознали — подключаем ИИ.
+    if (!parsed.recognized) {
+      try {
+        preview = await extractPartsFromRows(clean.slice(0, 300));
+        usedAi = true;
+      } catch (e) {
+        console.error('ИИ-разбор не удался:', e.message);
+      }
+    }
 
     res.json({
       success: true,
-      data: { preview, total_rows: clean.length, model: process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash' },
+      data: {
+        preview,
+        total_rows: clean.length,
+        used_ai: usedAi,
+        model: usedAi ? (process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro') : null,
+      },
     });
   } catch (e) {
     console.error('Ошибка разбора Excel:', e);
