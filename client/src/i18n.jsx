@@ -349,6 +349,9 @@ const translations = {
     'inv.sell': 'Продать',
     'inv.sell_title': 'Продажа со склада',
     'inv.sold': 'Продажа оформлена',
+    'inv.edit_stock': 'Изменить количество на складе',
+    'inv.edit_stock_title': 'Количество на складе',
+    'inv.stock_saved': 'Количество обновлено',
 
     // мои запчасти доп.
     'mystock.subtitle': 'Товар, выданный вам для продажи',
@@ -772,6 +775,9 @@ const translations = {
     'inv.sell': 'Sotish',
     'inv.sell_title': 'Ombordan sotish',
     'inv.sold': 'Sotuv rasmiylashtirildi',
+    'inv.edit_stock': 'Ombordagi miqdorni o\'zgartirish',
+    'inv.edit_stock_title': 'Ombordagi miqdor',
+    'inv.stock_saved': 'Miqdor yangilandi',
 
     // мои запчасти доп.
     'mystock.subtitle': 'Sotish uchun sizga berilgan tovar',

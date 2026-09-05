@@ -64,6 +64,7 @@ export const API = {
     create: (body) => api('/parts', { method: 'POST', body }),
     update: (id, body) => api(`/parts/${id}`, { method: 'PUT', body }),
     remove: (id) => api(`/parts/${id}`, { method: 'DELETE' }),
+    setStock: (id, warehouse_quantity) => api(`/parts/${id}/stock`, { method: 'POST', body: { warehouse_quantity } }),
   },
   transfers: {
     list: () => api('/transfers'),

@@ -35,16 +35,23 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'Таблица пуста' });
     }
 
-    // 1. Пробуем детерминированный разбор по заголовкам колонок.
+    // 1. Пробуем детерминированный разбор по заголовкам колонок (все строки).
     let preview = [];
     let usedAi = false;
-    const parsed = parseRows(clean.slice(0, 300));
+    const parsed = parseRows(clean);
     preview = parsed.parts;
 
-    // 2. Если не распознали — подключаем ИИ.
+    // 2. Если не распознали — подключаем ИИ (партиями, чтобы не упереться в лимит токенов).
     if (!parsed.recognized) {
       try {
-        preview = await extractPartsFromRows(clean.slice(0, 300));
+        const all = [];
+        const CHUNK = 250;
+        for (let i = 0; i < clean.length; i += CHUNK) {
+          const chunk = clean.slice(i, i + CHUNK);
+          const part = await extractPartsFromRows(chunk);
+          all.push(...part);
+        }
+        preview = all;
         usedAi = true;
       } catch (e) {
         console.error('ИИ-разбор не удался:', e.message);

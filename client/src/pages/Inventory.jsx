@@ -17,6 +17,7 @@ export function InventoryPage() {
   const [restockModal, setRestockModal] = useState(null);
   const [transferModal, setTransferModal] = useState(null);
   const [sellModal, setSellModal] = useState(null);
+  const [editStockModal, setEditStockModal] = useState(null);
 
   async function load() {
     setLoading(true);
@@ -95,6 +96,22 @@ export function InventoryPage() {
     }
   }
 
+  async function doSetStock(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await API.parts.setStock(
+        Number(fd.get('part_id')),
+        Number(fd.get('warehouse_quantity'))
+      );
+      toast(t('inv.stock_saved'), 'success');
+      setEditStockModal(null);
+      load();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  }
+
   async function doSell(e) {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -162,7 +179,18 @@ export function InventoryPage() {
                     {p.sku && <div className="small muted">{p.sku}</div>}
                   </td>
                   <td>
-                    <Badge tone={p.warehouse_qty > 0 ? 'success' : 'gray'}>{p.warehouse_qty} {t('common.pieces')}</Badge>
+                    {isAdmin ? (
+                      <button
+                        type="button"
+                        className="badge badge-success badge-btn"
+                        title={t('inv.edit_stock')}
+                        onClick={() => setEditStockModal({ part: p })}
+                      >
+                        {p.warehouse_qty} {t('common.pieces')} ✎
+                      </button>
+                    ) : (
+                      <Badge tone={p.warehouse_qty > 0 ? 'success' : 'gray'}>{p.warehouse_qty} {t('common.pieces')}</Badge>
+                    )}
                   </td>
                   <td>
                     <Badge tone={p.workers.length > 0 ? 'info' : 'gray'}>
@@ -355,6 +383,33 @@ export function InventoryPage() {
             <Button type="submit">{t('sale.sell')}</Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Изменение количества на складе (админ) */}
+      <Modal open={!!editStockModal} title={t('inv.edit_stock_title')} onClose={() => setEditStockModal(null)}>
+        {editStockModal?.part && (
+          <form onSubmit={doSetStock} className="form-grid">
+            <Field label={t('inv.part')}>
+              <input className="input" value={`${editStockModal.part.name} ${editStockModal.part.sku ? `(${editStockModal.part.sku})` : ''}`} disabled />
+              <input type="hidden" name="part_id" value={editStockModal.part.id} />
+            </Field>
+            <Field label={t('inv.in_warehouse')} required>
+              <input
+                name="warehouse_quantity"
+                type="number"
+                min="0"
+                step="1"
+                className="input"
+                defaultValue={editStockModal.part.warehouse_qty}
+                required
+              />
+            </Field>
+            <div className="form-actions">
+              <Button type="button" variant="ghost" onClick={() => setEditStockModal(null)}>{t('common.cancel')}</Button>
+              <Button type="submit">{t('common.save')}</Button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );

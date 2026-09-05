@@ -23,6 +23,19 @@ async function adjustStock(partId, ownerType, workerId, delta) {
   return delta;
 }
 
+// Устанавливает точное количество на складе/у рабочего (перезапись вместо дельты).
+async function setStock(partId, ownerType, workerId, quantity) {
+  const q = inventoryQuery(partId, ownerType, workerId);
+  const qty = Math.max(0, Number(quantity) || 0);
+  const row = await col('inventory').findOne(q);
+  if (row) {
+    await col('inventory').update({ _id: row._id }, { $set: { quantity: qty } });
+  } else if (qty > 0) {
+    await col('inventory').insert({ ...q, quantity: qty });
+  }
+  return qty;
+}
+
 // Распределение запчасти по локациям: склад + по каждому рабочему.
 async function availability(partId) {
   const rows = await col('inventory').find({ part_id: partId, quantity: { $gt: 0 } });
@@ -45,4 +58,4 @@ async function availability(partId) {
   return { warehouse: warehouse ? warehouse.quantity : 0, workers, total };
 }
 
-module.exports = { getQuantity, adjustStock, availability };
+module.exports = { getQuantity, adjustStock, setStock, availability };

@@ -1,7 +1,7 @@
 const express = require('express');
 const { col } = require('../db');
 const { adminOnly } = require('../auth');
-const { adjustStock, availability } = require('../inventory');
+const { adjustStock, availability, setStock } = require('../inventory');
 const { logAction } = require('../audit');
 
 const router = express.Router();
@@ -164,6 +164,25 @@ router.put('/:id', adminOnly, async (req, res) => {
   const updated = await col('parts').findOne({ id });
   const avail = await availability(id);
   res.json({ success: true, data: { ...updated, ...avail } });
+});
+
+// Установка точного количества на складе (только админ).
+router.post('/:id/stock', adminOnly, async (req, res) => {
+  const id = Number(req.params.id);
+  const p = await col('parts').findOne({ id });
+  if (!p) return res.status(404).json({ success: false, error: 'Запчасть не найдена' });
+
+  const { warehouse_quantity } = req.body || {};
+  const qty = Math.max(0, Number(warehouse_quantity) || 0);
+  if (!Number.isInteger(qty)) {
+    return res.status(400).json({ success: false, error: 'Введите целое неотрицательное количество' });
+  }
+
+  await setStock(id, 'warehouse', null, qty);
+  await logAction(req.user, 'set_stock', 'part', id, { name: p.name, warehouse_quantity: qty });
+
+  const avail = await availability(id);
+  res.json({ success: true, data: { id, ...avail } });
 });
 
 // Удаление запчасти (только если нет остатков). Мягкое удаление — данные сохраняются.
