@@ -1,7 +1,7 @@
 // Интеграция с DeepSeek API для «умного» разбора Excel-таблиц запчастей.
-// Модель настраивается через env: DEEPSEEK_MODEL (по умолчанию deepseek-v4-flash).
+// Модель настраивается через env: DEEPSEEK_MODEL (по умолчанию deepseek-v4-pro).
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash';
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro';
 const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1/chat/completions';
 
 // Вызов DeepSeek Chat Completions.
@@ -23,18 +23,24 @@ async function callDeepSeek(messages, temperature = 0) {
     }),
   });
 
+  const text = await response.text();
+  let data = {};
+  try {
+    data = JSON.parse(text);
+  } catch {}
+
   if (!response.ok) {
-    const text = await response.text();
-    let message = `DeepSeek API error ${response.status}`;
-    try {
-      const err = JSON.parse(text);
-      message = err.error?.message || message;
-    } catch {}
+    const message = data.error?.message || `DeepSeek API error ${response.status}`;
     throw new Error(message);
   }
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  // Некоторые модели (reasoner-типа) кладут ответ в reasoning_content, а content пустой.
+  const msg = data.choices?.[0]?.message || {};
+  const content = msg.content || msg.reasoning_content || '';
+  if (!content) {
+    throw new Error('DeepSeek вернул пустой ответ (проверьте DEEPSEEK_MODEL)');
+  }
+  return content;
 }
 
 // Достаём JSON из ответа модели (она может обернуть его в пояснения).

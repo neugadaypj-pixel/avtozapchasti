@@ -16,6 +16,10 @@ const { startScheduler } = require('./scheduler');
 
 const app = express();
 
+// На Render запросы идут через reverse-proxy (заголовок X-Forwarded-For).
+// Без этого express-rate-limit падает с ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1);
+
 // Базовые заголовки безопасности.
 app.use(helmet());
 
