@@ -1,4 +1,5 @@
 // Детерминированный разбор Excel-строк в запчасти по заголовкам колонок.
+// Поддерживает русские, английские и узбекские заголовки.
 // Используется в первую очередь; если ничего не распознано — подключается ИИ.
 
 function norm(s) {
@@ -13,11 +14,18 @@ function norm(s) {
 const RULES = [
   {
     key: 'sku',
-    words: ['артикул', 'арт', 'артикул номер', 'sku', 'oem', 'номер', 'код', 'код товара', 'каталожный', 'кат номер', 'article', 'number', 'code', 'part number'],
+    words: [
+      'артикул', 'арт', 'артикул номер', 'sku', 'oem', 'номер', 'код', 'код товара',
+      'каталожный', 'кат номер', 'штрих', 'штрихкод', 'штрих код', 'баркод', 'бар код',
+      'shtrix', 'shtrix kod', 'barcode', 'article', 'number', 'code', 'part number',
+    ],
   },
   {
     key: 'name',
-    words: ['название', 'наименование', 'наименование товара', 'номи', 'товар', 'деталь', 'часть', 'название детали', 'описание', 'name', 'description', 'title', 'part name'],
+    words: [
+      'название', 'наименование', 'наименование товара', 'номи', 'товар', 'деталь', 'часть',
+      'название детали', 'mahsulot', 'mahsulot nomi', 'name', 'description', 'title', 'part name',
+    ],
   },
   {
     key: 'brand',
@@ -25,19 +33,31 @@ const RULES = [
   },
   {
     key: 'quantity',
-    words: ['количество', 'кол во', 'колво', 'кол', 'остаток', 'остатки', 'шт', 'штук', 'количество шт', 'miqdor', 'soni', 'quantity', 'qty', 'count', 'stock'],
+    words: [
+      'количество', 'кол во', 'колво', 'кол', 'остаток', 'остатки', 'шт', 'штук',
+      'количество шт', 'колдик', 'qoldiq', 'qolgan', 'miqdor', 'soni', 'quantity', 'qty', 'count', 'stock',
+    ],
   },
   {
     key: 'cost_price',
-    words: ['закуп', 'закупочная', 'закупка', 'себестоимость', 'приходная', 'входная', 'цена закупа', 'опт', 'cost', 'purchase', 'приход цена'],
+    words: [
+      'закуп', 'закупочная', 'закупка', 'себестоимость', 'приходная', 'входная', 'цена закупа',
+      'опт', 'oxirgi narx', 'oxirgi', 'kirim', 'cost', 'purchase', 'приход цена',
+    ],
   },
   {
     key: 'sell_price',
-    words: ['продаж', 'продажная', 'розница', 'розничная', 'цена', 'стоимость', 'цена продажи', 'цена реализации', 'sell', 'price', 'narx', 'retail'],
+    words: [
+      'продаж', 'продажная', 'розница', 'розничная', 'цена', 'стоимость', 'цена продажи',
+      'цена реализации', 'sotuv', 'sotuv narxi', 'narx', 'sell', 'price', 'retail',
+    ],
   },
   {
     key: 'shelf',
-    words: ['полка', 'место', 'место хранения', 'стеллаж', 'ячейка', 'локация', 'расположение', 'shelf', 'location', 'tokcha', 'joy'],
+    words: [
+      'полка', 'место', 'место хранения', 'стеллаж', 'ячейка', 'локация', 'расположение',
+      'shelf', 'location', 'tokcha', 'joy',
+    ],
   },
 ];
 
@@ -107,7 +127,6 @@ function parseRows(rows) {
         else if (positional.cost_price === null) positional.cost_price = idx;
         else if (positional.sell_price === null) positional.sell_price = idx;
       } else {
-        // текст: похож на артикул, если содержит цифры и/или дефисы и короткий.
         if (positional.sku === null && /[0-9]/.test(s) && s.length <= 24) positional.sku = idx;
         else if (positional.name === null) positional.name = idx;
       }
@@ -135,8 +154,18 @@ function parseRows(rows) {
       return s === '' ? null : s;
     };
 
-    const name = get('name');
-    const sku = get('sku');
+    let name = get('name');
+    let sku = get('sku');
+
+    // Если артикул совпадает с названием — это не артикул, а дубликат названия.
+    if (sku && name && norm(sku) === norm(name)) {
+      sku = null;
+    }
+    // Если артикул не похож на код (нет цифр) — оставляем только название.
+    if (sku && !/[0-9]/.test(sku)) {
+      sku = null;
+    }
+
     if (!name && !sku) continue;
 
     const num = (key) => {
