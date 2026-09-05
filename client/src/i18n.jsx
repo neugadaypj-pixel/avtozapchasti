@@ -346,6 +346,9 @@ const translations = {
     'inv.reason_hint': 'Например, номер поставки из Китая',
     'inv.delivery_placeholder': 'Поставка №…',
     'inv.empty': 'Запчастей нет',
+    'inv.sell': 'Продать',
+    'inv.sell_title': 'Продажа со склада',
+    'inv.sold': 'Продажа оформлена',
 
     // мои запчасти доп.
     'mystock.subtitle': 'Товар, выданный вам для продажи',
@@ -766,6 +769,9 @@ const translations = {
     'inv.reason_hint': 'Masalan, Xitoydan kelgan yetkazib berish raqami',
     'inv.delivery_placeholder': 'Yetkazib berish №…',
     'inv.empty': "Ehtiyot qismlar yo'q",
+    'inv.sell': 'Sotish',
+    'inv.sell_title': 'Ombordan sotish',
+    'inv.sold': 'Sotuv rasmiylashtirildi',
 
     // мои запчасти доп.
     'mystock.subtitle': 'Sotish uchun sizga berilgan tovar',

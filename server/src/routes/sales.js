@@ -32,12 +32,8 @@ router.get('/', async (req, res) => {
   res.json({ success: true, data });
 });
 
-// Продажа — только рабочие.
+// Продажа. Рабочие продают со своего остатка, админ — со склада.
 router.post('/', async (req, res) => {
-  if (req.user.role === 'admin') {
-    return res.status(403).json({ success: false, error: 'Sotuvni faqat ishchilar rasmiylashtiradi' });
-  }
-
   const {
     part_id, quantity, unit_price, client_name, client_phone, note,
     payment_type, payment_status,
@@ -54,10 +50,15 @@ router.post('/', async (req, res) => {
   const part = await col('parts').findOne({ id: Number(part_id) });
   if (!part) return res.status(404).json({ success: false, error: "Ehtiyot qism topilmadi" });
 
-  const workerId = req.user.id;
-  const available = await getQuantity(part.id, 'worker', workerId);
+  // Админ продаёт со склада, рабочий — со своего остатка.
+  const isAdmin = req.user.role === 'admin';
+  const ownerType = isAdmin ? 'warehouse' : 'worker';
+  const ownerId = isAdmin ? null : req.user.id;
+
+  const available = await getQuantity(part.id, ownerType, ownerId);
   if (available < qty) {
-    return res.status(400).json({ success: false, error: `Ishchida yetarli mahsulot yo'q. Mavjud: ${available}` });
+    const where = isAdmin ? "Skladda" : "Ishchida";
+    return res.status(400).json({ success: false, error: `${where} yetarli mahsulot yo'q. Mavjud: ${available}` });
   }
 
   const price = unit_price !== undefined ? Number(unit_price) : part.sell_price;
@@ -66,11 +67,11 @@ router.post('/', async (req, res) => {
   // Если "оплата сразу" — статус paid, иначе pending.
   const status = payment_status === 'pending' ? 'pending' : 'paid';
 
-  await adjustStock(part.id, 'worker', workerId, -qty);
+  await adjustStock(part.id, ownerType, ownerId, -qty);
 
   const s = await col('sales').insert({
     part_id: part.id,
-    worker_id: workerId,
+    worker_id: req.user.id,
     quantity: qty,
     unit_price: price,
     total,

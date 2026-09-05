@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { API } from '../api.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n.jsx';
 import { Button, Field, Modal, Empty, Spinner, Badge, useToast, Select } from '../components/ui.jsx';
 
 export function InventoryPage() {
+  const { isAdmin } = useAuth();
   const { t } = useI18n();
   const toast = useToast();
   const [parts, setParts] = useState([]);
@@ -14,6 +16,7 @@ export function InventoryPage() {
   const [assignModal, setAssignModal] = useState(null);
   const [restockModal, setRestockModal] = useState(null);
   const [transferModal, setTransferModal] = useState(null);
+  const [sellModal, setSellModal] = useState(null);
 
   async function load() {
     setLoading(true);
@@ -92,6 +95,28 @@ export function InventoryPage() {
     }
   }
 
+  async function doSell(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await API.sales.create({
+        part_id: Number(fd.get('part_id')),
+        quantity: Number(fd.get('quantity')),
+        unit_price: Number(fd.get('unit_price')),
+        client_name: fd.get('client_name'),
+        client_phone: fd.get('client_phone'),
+        note: fd.get('note'),
+        payment_type: fd.get('payment_type'),
+        payment_status: fd.get('payment_status'),
+      });
+      toast(t('inv.sold'), 'success');
+      setSellModal(null);
+      load();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-head">
@@ -106,6 +131,7 @@ export function InventoryPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {isAdmin && <Button onClick={() => setSellModal(null) || setSellModal({})}>💰 {t('inv.sell')}</Button>}
         <Button onClick={() => setRestockModal({})}>📥 {t('inv.restock')}</Button>
         <Button onClick={() => setAssignModal({})}>🚚 {t('inv.assign')}</Button>
         <Button variant="secondary" onClick={() => setTransferModal({})}>🔄 {t('inv.worker_transfer')}</Button>
@@ -125,6 +151,7 @@ export function InventoryPage() {
                 <th>{t('inv.with_workers')}</th>
                 <th>{t('inv.total')}</th>
                 <th>{t('inv.detail')}</th>
+                {isAdmin && <th></th>}
               </tr>
             </thead>
             <tbody>
@@ -156,6 +183,18 @@ export function InventoryPage() {
                       </div>
                     )}
                   </td>
+                  {isAdmin && (
+                    <td className="text-right">
+                      <Button
+                        variant="success"
+                        size="sm"
+                        disabled={p.warehouse_qty <= 0}
+                        onClick={() => setSellModal({ part: p })}
+                      >
+                        💰 {t('inv.sell')}
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -261,6 +300,59 @@ export function InventoryPage() {
           <div className="form-actions">
             <Button type="button" variant="ghost" onClick={() => setTransferModal(null)}>{t('common.cancel')}</Button>
             <Button type="submit">{t('inv.transfer_btn')}</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Продажа со склада (админ) */}
+      <Modal open={!!sellModal} title={t('inv.sell_title')} onClose={() => setSellModal(null)}>
+        <form onSubmit={doSell} className="form-grid">
+          {sellModal?.part ? (
+            <Field label={t('inv.part')}>
+              <input className="input" value={`${sellModal.part.name} (${t('common.in_warehouse')}: ${sellModal.part.warehouse_qty})`} disabled />
+              <input type="hidden" name="part_id" value={sellModal.part.id} />
+            </Field>
+          ) : (
+            <Field label={t('inv.part')} required>
+              <Select name="part_id" placeholder={t('common.select')} required>
+                <option value="">{t('common.select')}</option>
+                {parts.filter((p) => p.warehouse_qty > 0).map((p) => (
+                  <option key={p.id} value={p.id}>{p.name} ({t('common.in_warehouse')}: {p.warehouse_qty})</option>
+                ))}
+              </Select>
+            </Field>
+          )}
+          <Field label={t('sale.quantity')} required>
+            <input name="quantity" type="number" min="1" className="input" defaultValue={1} required />
+          </Field>
+          <Field label={t('sale.unit_price')} required>
+            <input name="unit_price" type="number" min="0" className="input" defaultValue={sellModal?.part?.sell_price || 0} required />
+          </Field>
+          <Field label={t('sale.client')}>
+            <input name="client_name" className="input" placeholder={t('sale.client_placeholder')} />
+          </Field>
+          <Field label={t('sale.client_phone')}>
+            <input name="client_phone" className="input" placeholder="+998 …" />
+          </Field>
+          <Field label={t('sale.payment_type')} required>
+            <Select name="payment_type" defaultValue="cash" required>
+              <option value="cash">{t('sale.cash')}</option>
+              <option value="card">{t('sale.card')}</option>
+              <option value="bank">{t('sale.bank')}</option>
+            </Select>
+          </Field>
+          <Field label={t('sale.payment_when')} required>
+            <Select name="payment_status" defaultValue="paid" required>
+              <option value="paid">{t('sale.paid_now')}</option>
+              <option value="pending">{t('sale.paid_later')}</option>
+            </Select>
+          </Field>
+          <Field label={t('sale.note')}>
+            <input name="note" className="input" placeholder={t('sale.note_placeholder')} />
+          </Field>
+          <div className="form-actions">
+            <Button type="button" variant="ghost" onClick={() => setSellModal(null)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('sale.sell')}</Button>
           </div>
         </form>
       </Modal>
