@@ -6,6 +6,52 @@ const { logAction } = require('../audit');
 
 const router = express.Router();
 
+// --- Умный поиск -----------------------------------------------------------
+// Нормализация строки: нижний регистр, ё→е, убираем пунктуацию, схлопываем пробелы.
+function normalize(s) {
+  return String(s ?? '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Разбивает запрос на токены (по пробелам), убирая слишком короткие мусорные.
+function tokenize(query) {
+  return normalize(query)
+    .split(' ')
+    .filter((t) => t.length > 0);
+}
+
+// Считаем релевантность запчасти запросу. Чем больше — тем лучше.
+// Возвращает 0, если не подходит.
+function scorePart(p, tokens, haystacks, normName, normSku) {
+  let score = 0;
+  for (const tok of tokens) {
+    let best = 0;
+    for (const h of haystacks) {
+      // 1. Точное совпадение целого слова/фразы.
+      if (h.includes(tok)) {
+        best = Math.max(best, 3);
+      }
+      // 2. Совпадение по префиксу слова (вводишь "старт" — находит "стартер").
+      if (best === 0) {
+        const idx = h.indexOf(tok);
+        if (idx !== -1) best = Math.max(best, 2);
+      }
+    }
+    // 3. Приоритет для названия (важнее, чем бренд/описание).
+    if (normName.includes(tok)) best += 2;
+    // 4. Особый бонус для точного совпадения по артикулу (SKU).
+    if (normSku && normSku.includes(tok)) best += 2;
+
+    if (best === 0) return 0; // токен нигде не найден — не подходит
+    score += best;
+  }
+  return score;
+}
+
 // Список запчастей с наличием по складу и рабочим.
 router.get('/', async (req, res) => {
   const { search, category_id, brand, low_stock, mine } = req.query;
@@ -14,15 +60,32 @@ router.get('/', async (req, res) => {
   const cats = await col('categories').find({});
   const catMap = Object.fromEntries(cats.map((c) => [c.id, c.name]));
 
-  // Фильтрация.
+  // Фильтрация (умный поиск).
   if (search) {
-    const s = search.toLowerCase();
-    parts = parts.filter(
-      (p) =>
-        (p.name || '').toLowerCase().includes(s) ||
-        (p.sku || '').toLowerCase().includes(s) ||
-        (p.brand || '').toLowerCase().includes(s)
-    );
+    const tokens = tokenize(search);
+    if (tokens.length > 0) {
+      const scored = [];
+      for (const p of parts) {
+        const normName = normalize(p.name);
+        const normSku = normalize(p.sku);
+        const normBrand = normalize(p.brand);
+        const normDesc = normalize(p.description);
+        const normShelf = normalize(p.shelf);
+        const normCat = normalize(catMap[p.category_id]);
+
+        const score = scorePart(
+          p,
+          tokens,
+          [normName, normSku, normBrand, normDesc, normShelf, normCat],
+          normName,
+          normSku
+        );
+        if (score > 0) scored.push({ p, score });
+      }
+      // Сортировка по релевантности: выше — лучшее совпадение.
+      scored.sort((a, b) => b.score - a.score || b.p.id - a.p.id);
+      parts = scored.map((x) => x.p);
+    }
   }
   if (category_id) {
     parts = parts.filter((p) => p.category_id === Number(category_id));
@@ -76,7 +139,11 @@ router.get('/', async (req, res) => {
     data = data.filter((d) => d.low_stock);
   }
 
-  data.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)) || b.id - a.id);
+  // При обычном просмотре сортируем по дате добавления, при поиске — сохраняем
+  // порядок релевантности, заданный выше.
+  if (!search) {
+    data.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)) || b.id - a.id);
+  }
   res.json({ success: true, data });
 });
 
