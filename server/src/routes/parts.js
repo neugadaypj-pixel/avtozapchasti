@@ -103,9 +103,8 @@ router.post('/', adminOnly, async (req, res) => {
     if (exists) return res.status(409).json({ success: false, error: 'Артикул (SKU) уже существует' });
   }
 
-  const part = await col('parts').insert({
+  const partDoc = {
     name: String(name).trim(),
-    sku: sku ? String(sku).trim() : null,
     brand: brand || null,
     category_id: category_id ? Number(category_id) : null,
     cost_price: Number(cost_price) || 0,
@@ -115,7 +114,11 @@ router.post('/', adminOnly, async (req, res) => {
     shelf: shelf ? String(shelf).trim() : null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  });
+  };
+  // Не пишем sku: null — разреженный уникальный индекс падает с duplicate key.
+  if (sku) partDoc.sku = String(sku).trim();
+
+  const part = await col('parts').insert(partDoc);
 
   const qty = Math.max(0, Number(initial_quantity) || 0);
   if (qty > 0) {

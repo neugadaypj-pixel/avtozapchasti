@@ -76,39 +76,47 @@ router.post('/confirm', async (req, res) => {
   let created = 0;
   const errors = [];
   for (const p of parts) {
-    const name = String(p.name || '').trim();
-    if (!name) {
-      errors.push({ sku: p.sku || null, error: 'Нет названия' });
-      continue;
-    }
-    const sku = p.sku ? String(p.sku).trim() : null;
-    if (sku) {
-      const exists = await col('parts').findOne({ sku });
-      if (exists) {
-        errors.push({ sku, error: 'Артикул уже существует' });
+    try {
+      const name = String(p.name || '').trim();
+      if (!name) {
+        errors.push({ sku: p.sku || null, error: 'Нет названия' });
         continue;
       }
-    }
+      const sku = p.sku ? String(p.sku).trim() : null;
+      if (sku) {
+        const exists = await col('parts').findOne({ sku });
+        if (exists) {
+          errors.push({ sku, error: 'Артикул уже существует' });
+          continue;
+        }
+      }
 
-    const part = await col('parts').insert({
-      name,
-      sku,
-      brand: p.brand ? String(p.brand).trim() : null,
-      category_id: p.category_id ? Number(p.category_id) : null,
-      cost_price: Number(p.cost_price) || 0,
-      sell_price: Number(p.sell_price) || 0,
-      description: p.description ? String(p.description).trim() : null,
-      shelf: p.shelf ? String(p.shelf).trim() : null,
-      image_url: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
+      // Важно: не пишем sku: null — разреженный уникальный индекс
+      // падает с duplicate key { sku: null } при нескольких товарах без артикула.
+      const doc = {
+        name,
+        brand: p.brand ? String(p.brand).trim() : null,
+        category_id: p.category_id ? Number(p.category_id) : null,
+        cost_price: Number(p.cost_price) || 0,
+        sell_price: Number(p.sell_price) || 0,
+        description: p.description ? String(p.description).trim() : null,
+        shelf: p.shelf ? String(p.shelf).trim() : null,
+        image_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      if (sku) doc.sku = sku;
 
-    const qty = Math.max(0, Number(p.quantity) || 0);
-    if (qty > 0) {
-      await adjustStock(part.id, 'warehouse', null, qty);
+      const part = await col('parts').insert(doc);
+
+      const qty = Math.max(0, Number(p.quantity) || 0);
+      if (qty > 0) {
+        await adjustStock(part.id, 'warehouse', null, qty);
+      }
+      created++;
+    } catch (e) {
+      errors.push({ sku: p.sku || null, error: e.message });
     }
-    created++;
   }
 
   await logAction(req.user, 'import', 'parts', null, { created, total: parts.length });
