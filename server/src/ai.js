@@ -5,9 +5,19 @@ const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro';
 const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1/chat/completions';
 
 // Вызов DeepSeek Chat Completions.
-async function callDeepSeek(messages, temperature = 0) {
+async function callDeepSeek(messages, { jsonMode = false } = {}) {
   if (!DEEPSEEK_API_KEY) {
     throw new Error('DEEPSEEK_API_KEY не задан');
+  }
+  const body = {
+    model: DEEPSEEK_MODEL,
+    messages,
+    temperature: 0,
+    max_tokens: 8000,
+  };
+  if (jsonMode) {
+    // DeepSeek поддерживает JSON mode (гарантирует валидный JSON в ответе).
+    body.response_format = { type: 'json_object' };
   }
   const response = await fetch(DEEPSEEK_BASE_URL, {
     method: 'POST',
@@ -15,12 +25,7 @@ async function callDeepSeek(messages, temperature = 0) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
     },
-    body: JSON.stringify({
-      model: DEEPSEEK_MODEL,
-      messages,
-      temperature,
-      max_tokens: 4000,
-    }),
+    body: JSON.stringify(body),
   });
 
   const text = await response.text();
@@ -43,24 +48,40 @@ async function callDeepSeek(messages, temperature = 0) {
   return content;
 }
 
-// Достаём JSON из ответа модели (она может обернуть его в пояснения).
+// Достаём JSON из ответа модели (она может обернуть его в пояснения, markdown и т.п.).
 function extractJson(text) {
   if (!text) throw new Error('Пустой ответ от ИИ');
+
+  let cleaned = text.trim();
+
+  // 1. Снимаем markdown-обёртку ```json ... ``` / ``` ... ```.
+  const fence = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) cleaned = fence[1].trim();
+
+  // 2. Пробуем распарсить как есть.
   try {
-    return JSON.parse(text);
+    return JSON.parse(cleaned);
   } catch {}
-  const arrMatch = text.match(/\[[\s\S]*\]/);
-  if (arrMatch) {
+
+  // 3. Ищем первый '[' и последний ']' (JSON-массив внутри текста).
+  const firstArr = cleaned.indexOf('[');
+  const lastArr = cleaned.lastIndexOf(']');
+  if (firstArr !== -1 && lastArr > firstArr) {
     try {
-      return JSON.parse(arrMatch[0]);
+      return JSON.parse(cleaned.slice(firstArr, lastArr + 1));
     } catch {}
   }
-  const objMatch = text.match(/\{[\s\S]*\}/);
-  if (objMatch) {
+
+  // 4. Ищем первый '{' и последний '}' (JSON-объект внутри текста).
+  const firstObj = cleaned.indexOf('{');
+  const lastObj = cleaned.lastIndexOf('}');
+  if (firstObj !== -1 && lastObj > firstObj) {
     try {
-      return JSON.parse(objMatch[0]);
+      return JSON.parse(cleaned.slice(firstObj, lastObj + 1));
     } catch {}
   }
+
+  console.error('Не удалось разобрать ответ ИИ. Сырой ответ:', text.slice(0, 2000));
   throw new Error('ИИ вернул нечитаемый формат данных');
 }
 
@@ -72,27 +93,34 @@ async function extractPartsFromRows(rows) {
 Данные:
 ${JSON.stringify(rows)}
 
-Разбери эту таблицу и верни ТОЛЬКО JSON-массив объектов запчастей. Каждый объект должен содержать поля:
-- "name": название запчасти (string)
-- "sku": артикул/номер детали (string или null)
-- "brand": бренд (string или null)
-- "quantity": количество на складе (integer, по умолчанию 0)
-- "cost_price": закупочная цена (number, по умолчанию 0)
-- "sell_price": цена продажи (number, по умолчанию 0)
-- "shelf": полка/место хранения (string или null)
-- "description": дополнительное описание (string или null)
+Разбери эту таблицу и верни JSON-объект строго такого формата:
+{"parts": [
+  {
+    "name": "название запчасти",
+    "sku": "артикул или null",
+    "brand": "бренд или null",
+    "quantity": 0,
+    "cost_price": 0,
+    "sell_price": 0,
+    "shelf": "полка или null",
+    "description": "описание или null"
+  }
+]}
 
 Правила:
 1. Пропускай пустые строки и строки-заголовки.
 2. Определяй назначение колонок по содержимому (артикул обычно выглядит как код, например 90915-10009 или 04465-33220; количество — целое число).
-3. Если колонка цены указана в рублях или долларах, оставь число как есть (без валютного символа).
+3. Если колонка цены указана с валютой — оставь только число.
 4. Если поля нет в таблице — ставь null (для quantity/cost_price/sell_price — 0).
-5. Верни массив, ничего больше, без пояснений и markdown.`;
+5. Верни ТОЛЬКО JSON, без пояснений и markdown.`;
 
-  const content = await callDeepSeek([
-    { role: 'system', content: 'Ты отвечаешь строго валидным JSON без пояснений.' },
-    { role: 'user', content: prompt },
-  ]);
+  const content = await callDeepSeek(
+    [
+      { role: 'system', content: 'Ты отвечаешь строго валидным JSON-объектом без пояснений.' },
+      { role: 'user', content: prompt },
+    ],
+    { jsonMode: true }
+  );
 
   const parsed = extractJson(content);
   const list = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.parts) ? parsed.parts : []);
